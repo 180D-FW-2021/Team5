@@ -4,6 +4,8 @@ import time
 
 left_forward = True
 right_forward = True
+left_turn_length = 0.4
+right_turn_length = 0.5
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
@@ -19,10 +21,11 @@ def on_disconnect(client, userdata, rc):
 def on_message(client, userdata, message):
 	print("Received message:")
 	if(str(message.topic) == 'ece180d/team5/motorControls'):
-		print(str(message.payload))
-		if(str(message.payload) == 'L'):
+		payload = message.payload.decode("utf-8")
+		print(payload)
+		if(payload == 'L'):
 			turn_left()
-		elif(str(message.payload) == 'R'):
+		elif(payload == 'R'):
 			turn_right()
 		else:
 			print('Unknown command')
@@ -31,33 +34,37 @@ def turn_left():
 	#current time
 	start_time = time.time()
 	#run for 1 seconds
-	while(time.time() - start_time < 2):
-		io.output(in1, True)
-		io.output(in2, False)
+	while(time.time() - start_time < left_turn_length):
+		io.output(in1, False)
+		io.output(in2, True)
+		io.output(in3, True)
+		io.output(in4, False)
 	#once while loop is over, return to driving straight
-	io.output(in1, False)
-	io.output(in2, True)
-	#io.output(in3, False)
-	#io.output(in4, True)
+	io.output(in1, True)
+	io.output(in2, False)
+	io.output(in3, True)
+	io.output(in4, False)
 
 def turn_right():
 	#current time
 	start_time = time.time()
 	#run for 1 second
-	while(time.time() - start_time < 2):
-		io.output(in1, False)
-		io.output(in2, True)
+	while(time.time() - start_time < right_turn_length):
+		io.output(in1, True)
+		io.output(in2, False)
+		io.output(in3, False)
+		io.output(in4, True)
 	#once while loop is over, return to driving straight
-	io.output(in1, False)
-	io.output(in2, True)
-	#io.output(in3, False)
-	#io.output(in4, True)
+	io.output(in1, True)
+	io.output(in2, False)
+	io.output(in3, True)
+	io.output(in4, False)
 
 def stop_driving():
 	io.output(in1, True)
 	io.output(in2, True)
-	#io.output(in3, True)
-	#io.output(in4, True)
+	io.output(in3, True)
+	io.output(in4, True)
 
 client = mqtt.Client()
 
@@ -75,17 +82,17 @@ io.setmode(io.BCM)
 #set up motor pins. 12,13,18,19 are PWM.
 in1 = 17
 in2 = 27
-#in3 = 18
-#in4 = 12
+in3 = 23
+in4 = 24
 #enL = 5
-enR = 18
+#enR = 18
 
 io.setup(in1, io.OUT)
 io.setup(in2, io.OUT)
-#io.setup(in3, io.OUT)
-#io.setup(in4, io.OUT)
+io.setup(in3, io.OUT)
+io.setup(in4, io.OUT)
 #io.setup(enL, io.OUT)
-io.setup(enR, io.OUT)
+#io.setup(enR, io.OUT)
 
 #set up pwm's at 100 Hz
 #pwmL = io.PWM(enL, 100)
@@ -95,11 +102,11 @@ try:
 	#start driving straight. Once output is started, it continues outputting High/Low forever until stopped
 	#pwmL.start(10)
 	#pwmR.start(100)
-	io.output(in1, False)
-	io.output(in2, True)
-	io.output(enR, True)
-	#io.output(in3, False)
-	#io.output(in4, True)
+	io.output(in1, True)
+	io.output(in2, False)
+	#io.output(enR, True)
+	io.output(in3, True)
+	io.output(in4, False)
 	time.sleep(20)
 	#pwmR.ChangeDutyCycle(100)
 	stop_driving()
