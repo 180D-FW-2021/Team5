@@ -66,3 +66,43 @@ class Overhead(object):
             filteredContours = filter(lambda c: cv.contourArea(c) > self.threshold, greenContours)
             self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
             self.nDots = len(self.dots)
+
+    def loop(self, target):
+        '''Main function to be called each game loop. Takes in the index of
+        current target in dots list. Finds the car and sees if it is still in
+        the game boundary and if it has collected the target dot. Returns a
+        tuple of (inBoundary, gotTarget)'''
+        if not (0 <= target < self.nDots):
+            raise ValueError(f"{target} is an invalid target index")
+
+        frame = self.getFrame()
+        carContour = self.findCar(frame)
+        M = cv.moments(carContour)
+        carCentroid = (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
+        inBoundary = inContour(self.boundary, carCentroid)
+        # Define "collecting a dot" as when the center of the dot is within the
+        # contour of the car
+        gotTarget = inContour(carContour, self.dots[target][0])
+
+        return (inBoundary, gotTarget)
+
+    def findCar(self, frame):
+        '''Find the largest red object in the camera's view, assuming it's the
+        car. Return its contour'''
+        # Because red is split between the very bottom and very top of HSV, we
+        # have to check two ranges
+        redBotObjects = cv.inRange(frame, self.redBotLow, self.redBotHigh)
+        redTopObjects = cv.inRange(frame, self.redTopLow, self.redTopHigh)
+        redObjects = cv.bitwise_or(redBotObjects, redTopObjects)
+
+        redContours, _ = cv.findContours(redObjects,
+                                        cv.RETR_LIST,
+                                        cv.CHAIN_APPROX_SIMPLE)
+        return max(redContours, key=lambda c: cv.contourArea(c))
+
+# Utility functions
+
+def inContour(cnt, point):
+    '''Takes a contour and a point (x,y) and returns true if that point is
+    within the contour.'''
+    return cv.pointPolygonTest(cnt, point, False) >= 0
