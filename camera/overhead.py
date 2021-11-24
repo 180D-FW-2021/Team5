@@ -34,40 +34,14 @@ class Overhead(object):
         # Parse the boundary and dots from the game arena
         self.setup()
 
-    def getFrame(self):
-        '''Gets a frame from the camera, converts it to HSV, and stores it in
-        self.frame.'''
-        _, frame = self.camera.read()
-        return cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots. Assumes
         boundary is blue and dots are green.'''
         # Keep taking frames until we've found a boundary and at least one dot
         while (self.boundary is None) or (not self.dots):
             self.getFrame()
-
-            # Get boundary
-            blueObjects = cv.inRange(self.frame, self.blueLow, self.blueHigh)
-            blueContours, _ = cv.findContours(blueObjects,
-                                        cv.RETR_LIST,
-                                        cv.CHAIN_APPROX_NONE)
-            if blueContours:
-                # Take the largest contour and make an approximation of it to
-                # smooth the outline
-                largestBlue = max(blueContours, key=cv.contourArea)
-                epsilon = 0.01 * cv.arcLength(largestBlue, True)
-                outline = cv.approxPolyDP(largestBlue, epsilon, True)
-                self.boundary = outline
-
-            # Get dots
-            greenObjects = cv.inRange(self.frame, self.greenLow, self.greenHigh)
-            greenContours, _ = cv.findContours(greenObjects,
-                                            cv.RETR_LIST,
-                                            cv.CHAIN_APPROX_SIMPLE)
-            filteredContours = filter(lambda c: cv.contourArea(c) > self.threshold, greenContours)
-            self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
-            self.nDots = len(self.dots)
+            self.findBoundary()
+            self.findDots()
 
     def loop(self, target):
         '''Main function to be called each game loop. Takes in the index of
@@ -87,6 +61,39 @@ class Overhead(object):
         gotTarget = inContour(carContour, self.dots[target][0])
 
         return (inBoundary, gotTarget)
+
+    def getFrame(self):
+        '''Gets a frame from the camera, converts it to HSV, and stores it in
+        self.frame.'''
+        _, frame = self.camera.read()
+        return cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+
+    def findBoundary(self):
+        '''Finds the largest blue object and assumes it is the boundary. Creates
+        an approximation of the contour to smooth any details, and stores the
+        approximation in self.boundary.'''
+        blueObjects = cv.inRange(self.frame, self.blueLow, self.blueHigh)
+        blueContours, _ = cv.findContours(blueObjects,
+                                    cv.RETR_LIST,
+                                    cv.CHAIN_APPROX_NONE)
+        if blueContours:
+            # Take the largest contour and make an approximation of it to
+            # smooth the outline
+            largestBlue = max(blueContours, key=cv.contourArea)
+            epsilon = 0.01 * cv.arcLength(largestBlue, True)
+            outline = cv.approxPolyDP(largestBlue, epsilon, True)
+            self.boundary = outline
+
+    def findDots(self):
+        '''Finds all green objects with contour area larger than self.threshold.
+        Stores their bounding circles in self.dots as ((x,y),radius).'''
+        greenObjects = cv.inRange(self.frame, self.greenLow, self.greenHigh)
+        greenContours, _ = cv.findContours(greenObjects,
+                                        cv.RETR_LIST,
+                                        cv.CHAIN_APPROX_SIMPLE)
+        filteredContours = filter(lambda c: cv.contourArea(c) > self.threshold, greenContours)
+        self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
+        self.nDots = len(self.dots)
 
     def findCar(self):
         '''Find the largest red object in the camera's view, assuming it's the
