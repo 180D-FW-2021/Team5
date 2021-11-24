@@ -3,7 +3,7 @@ import numpy as np
 
 class Overhead(object):
     def __init__(self, threshold):
-        '''Initialize various member variables and parse the game arena.'''
+        '''Initialize various member variables.'''
 
         # Colors for drawing
         self.red = [0,255,255]
@@ -30,9 +30,6 @@ class Overhead(object):
         self.threshold = threshold # Area threshold for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
         self.frame = None # Current frame being processed
-        
-        # Parse the boundary and dots from the game arena
-        self.setup()
 
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots. Assumes
