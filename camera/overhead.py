@@ -25,6 +25,7 @@ class Overhead(object):
         # Other variables
         self.boundary = None # Boundary contour
         self.dots = None # List of dots in the arena
+        self.nDots = -1 # Number of dots parsed in the arena
         self.target = -1 # Index of target dot in dots list
         self.threshold = threshold # Area threshold for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
@@ -64,3 +65,4 @@ class Overhead(object):
                                             cv.CHAIN_APPROX_SIMPLE)
             filteredContours = filter(lambda c: cv.contourArea(c) > self.threshold, greenContours)
             self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
+            self.nDots = len(self.dots)
