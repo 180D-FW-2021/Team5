@@ -11,3 +11,6 @@ Parses the game arena, finding the game boundary and all dots in the arena. This
 The main game loop function, which should be called continuously. `loop()` takes a single parameter: the index of the current target dot. The target index must be between 0 inclusive and `Overhead.nDots` exclusive. The target index is not expected to change until the car collects the dot.
 
 Returns the tuple `(inBoundary, gotTarget)`, where `inBoundary` is `True` if the car is still inside the game boundary and `gotTarget` is `True` if the car has collected the target on this frame. If `gotTarget` is `True`, then the target index should change before the next call to `loop()`.
+
+## `Overhead.drawFrame(target=True, dots=True, car=False, boundary=False)`
+Uses OpenCV functions to draw requested objects on the current frame and returns the modified frame in the RGB color space. By default, `drawFrame()` will only include the dots and place an extra circle around the target dot, but it can also draw the car and the game boundary if requested.

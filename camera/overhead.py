@@ -26,6 +26,7 @@ class Overhead(object):
         self.boundary = None # Boundary contour
         self.dots = None # List of dots in the arena
         self.nDots = -1 # Number of dots parsed in the arena
+        self.car = None # Contour of the car
         self.target = -1 # Index of target dot in dots list
         self.threshold = threshold # Area threshold for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
@@ -49,13 +50,13 @@ class Overhead(object):
             raise ValueError(f"{target} is an invalid target index")
 
         self.getFrame()
-        carContour = self.findCar()
-        M = cv.moments(carContour)
+        self.findCar()
+        M = cv.moments(self.car)
         carCentroid = (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
         inBoundary = inContour(self.boundary, carCentroid)
         # Define "collecting a dot" as when the center of the dot is within the
         # contour of the car
-        gotTarget = inContour(carContour, self.dots[target][0])
+        gotTarget = inContour(self.car, self.dots[target][0])
 
         return (inBoundary, gotTarget)
 
@@ -104,7 +105,26 @@ class Overhead(object):
         redContours, _ = cv.findContours(redObjects,
                                         cv.RETR_LIST,
                                         cv.CHAIN_APPROX_SIMPLE)
-        return max(redContours, key=lambda c: cv.contourArea(c))
+        self.car = max(redContours, key=lambda c: cv.contourArea(c))
+
+    def drawFrame(self, target=True, dots=True, car=False, boundary=False):
+        '''Draws the requested features onto the current frame, converting it
+        back to RGB and returning the modified frame.'''
+        # Operate on a copy of the current frame so we don't modify the original
+        frame = self.frame.copy()
+        if target:
+            # Draw a circle with a larger radius centered on the target dot
+            targetCenter, targetRadius = self.dots[target]
+            frame = cv.circle(frame, targetCenter, targetRadius + 5, self.purple, 2)
+        if dots:
+            for center, radius in self.dots:
+                frame = cv.circle(frame, center, radius, self.green, -1)
+        if car:
+            frame = cv.drawContours(frame, [self.car], 0, self.red, 2)
+        if boundary:
+            frame = cv.drawContours(frame, [self.boundary], 0, self.blue, 5)
+
+        return cv.cvtColor(frame, cv.COLOR_HSV2BGR)
 
 # Utility functions
 
