@@ -3,7 +3,7 @@ import numpy as np
 
 class Overhead(object):
     def __init__(self, threshold):
-        '''Initialize various member variables and parse the game arena'''
+        '''Initialize various member variables and parse the game arena.'''
 
         # Colors for drawing
         self.red = [0,255,255]
@@ -29,24 +29,26 @@ class Overhead(object):
         self.target = -1 # Index of target dot in dots list
         self.threshold = threshold # Area threshold for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
+        self.frame = None # Current frame being processed
         
         # Parse the boundary and dots from the game arena
         self.setup()
 
     def getFrame(self):
-        '''Gets a frame from the camera and converts it to HSV'''
+        '''Gets a frame from the camera, converts it to HSV, and stores it in
+        self.frame.'''
         _, frame = self.camera.read()
         return cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots. Assumes
-        boundary is blue and dots are green'''
+        boundary is blue and dots are green.'''
         # Keep taking frames until we've found a boundary and at least one dot
         while (self.boundary is None) or (not self.dots):
-            frame = self.getFrame()
+            self.getFrame()
 
             # Get boundary
-            blueObjects = cv.inRange(frame, self.blueLow, self.blueHigh)
+            blueObjects = cv.inRange(self.frame, self.blueLow, self.blueHigh)
             blueContours, _ = cv.findContours(blueObjects,
                                         cv.RETR_LIST,
                                         cv.CHAIN_APPROX_NONE)
@@ -59,7 +61,7 @@ class Overhead(object):
                 self.boundary = outline
 
             # Get dots
-            greenObjects = cv.inRange(frame, self.greenLow, self.greenHigh)
+            greenObjects = cv.inRange(self.frame, self.greenLow, self.greenHigh)
             greenContours, _ = cv.findContours(greenObjects,
                                             cv.RETR_LIST,
                                             cv.CHAIN_APPROX_SIMPLE)
@@ -75,8 +77,8 @@ class Overhead(object):
         if not (0 <= target < self.nDots):
             raise ValueError(f"{target} is an invalid target index")
 
-        frame = self.getFrame()
-        carContour = self.findCar(frame)
+        self.getFrame()
+        carContour = self.findCar()
         M = cv.moments(carContour)
         carCentroid = (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
         inBoundary = inContour(self.boundary, carCentroid)
@@ -86,13 +88,13 @@ class Overhead(object):
 
         return (inBoundary, gotTarget)
 
-    def findCar(self, frame):
+    def findCar(self):
         '''Find the largest red object in the camera's view, assuming it's the
-        car. Return its contour'''
+        car. Return its contour.'''
         # Because red is split between the very bottom and very top of HSV, we
         # have to check two ranges
-        redBotObjects = cv.inRange(frame, self.redBotLow, self.redBotHigh)
-        redTopObjects = cv.inRange(frame, self.redTopLow, self.redTopHigh)
+        redBotObjects = cv.inRange(self.frame, self.redBotLow, self.redBotHigh)
+        redTopObjects = cv.inRange(self.frame, self.redTopLow, self.redTopHigh)
         redObjects = cv.bitwise_or(redBotObjects, redTopObjects)
 
         redContours, _ = cv.findContours(redObjects,
