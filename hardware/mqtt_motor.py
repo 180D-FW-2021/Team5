@@ -2,8 +2,7 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as io
 import time
 
-left_forward = True
-right_forward = True
+
 left_turn_length = 0.4
 right_turn_length = 0.5
 
@@ -35,8 +34,10 @@ def turn_left():
 	start_time = time.time()
 	#run for 1 seconds
 	while(time.time() - start_time < left_turn_length):
+		#drive left motor backward
 		io.output(in1, False)
 		io.output(in2, True)
+		#drive right motor forward
 		io.output(in3, True)
 		io.output(in4, False)
 	#once while loop is over, return to driving straight
@@ -50,8 +51,10 @@ def turn_right():
 	start_time = time.time()
 	#run for 1 second
 	while(time.time() - start_time < right_turn_length):
+		#drive left forward
 		io.output(in1, True)
 		io.output(in2, False)
+		#drive right backward
 		io.output(in3, False)
 		io.output(in4, True)
 	#once while loop is over, return to driving straight
@@ -61,10 +64,13 @@ def turn_right():
 	io.output(in4, False)
 
 def stop_driving():
+	#drive all inputs high to stop driving
 	io.output(in1, True)
 	io.output(in2, True)
 	io.output(in3, True)
 	io.output(in4, True)
+	pwmL.stop()
+	pwmR.stop()
 
 client = mqtt.Client()
 
@@ -84,27 +90,26 @@ in1 = 17
 in2 = 27
 in3 = 23
 in4 = 24
-#enL = 5
-#enR = 18
+enL = 13
+enR = 19
 
 io.setup(in1, io.OUT)
 io.setup(in2, io.OUT)
 io.setup(in3, io.OUT)
 io.setup(in4, io.OUT)
-#io.setup(enL, io.OUT)
-#io.setup(enR, io.OUT)
+io.setup(enL, io.OUT)
+io.setup(enR, io.OUT)
 
 #set up pwm's at 100 Hz
-#pwmL = io.PWM(enL, 100)
-#pwmR = io.PWM(enR, 50)
+pwmL = io.PWM(enL, 100)
+pwmR = io.PWM(enR, 100)
 
 try:
 	#start driving straight. Once output is started, it continues outputting High/Low forever until stopped
-	#pwmL.start(10)
-	#pwmR.start(100)
+	pwmL.start(10)
+	pwmR.start(10)
 	io.output(in1, True)
 	io.output(in2, False)
-	#io.output(enR, True)
 	io.output(in3, True)
 	io.output(in4, False)
 	time.sleep(20)
@@ -112,13 +117,10 @@ try:
 	stop_driving()
 except KeyboardInterrupt:
 	stop_driving()
-	#pwmR.stop()
 	io.cleanup()
 	client.loop_stop()
 	client.disconnect()
 
-#pwmL.stop()
-#pwmR.stop()
 io.cleanup()
 client.loop_stop()
 client.disconnect()
