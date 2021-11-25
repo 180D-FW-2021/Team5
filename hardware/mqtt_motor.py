@@ -124,6 +124,7 @@ try:
 	for speed in range(10, 100, 5):
 		pwmR.ChangeDutyCycle(speed)
 		pwmL.ChangeDutyCycle(speed)
+		time.sleep(5)
 	stop_driving()
 except KeyboardInterrupt:
 	stop_driving()
