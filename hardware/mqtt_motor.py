@@ -5,6 +5,8 @@ import time
 
 left_turn_length = 0.4
 right_turn_length = 0.5
+speed = 20
+is_stopped = False
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
@@ -22,12 +24,18 @@ def on_message(client, userdata, message):
 	if(str(message.topic) == 'ece180d/team5/motorControls'):
 		payload = message.payload.decode("utf-8")
 		print(payload)
-		if(payload == 'L'):
+		if(payload == 'L' and not(is_stopped)):
 			turn_left()
-		elif(payload == 'R'):
+		elif(payload == 'R' and not(is_stopped)):
 			turn_right()
 		else:
 			print('Unknown command')
+	elif(str(message.topic) == 'ece180d/team5/speed'):
+		payload = message.payload.decode("utf-8")
+		print(payload)
+		if(payload == '+'):
+			speed += 10
+			
 
 def turn_left():
 	#current time
@@ -90,8 +98,8 @@ in1 = 17
 in2 = 27
 in3 = 23
 in4 = 24
-enL = 13
-enR = 19
+enR = 13
+enL = 19
 
 io.setup(in1, io.OUT)
 io.setup(in2, io.OUT)
@@ -113,7 +121,9 @@ try:
 	io.output(in3, True)
 	io.output(in4, False)
 	time.sleep(20)
-	#pwmR.ChangeDutyCycle(100)
+	for speed in range(10, 100, 5):
+		pwmR.ChangeDutyCycle(speed)
+		pwmL.ChangeDutyCycle(speed)
 	stop_driving()
 except KeyboardInterrupt:
 	stop_driving()
