@@ -60,6 +60,10 @@ class Overhead(object):
 
         return (inBoundary, gotTarget)
 
+    def stop(self):
+        '''Ensure graceful shutdown by releasing camera.'''
+        self.camera.release()
+
     def getFrame(self):
         '''Gets a frame from the camera, converts it to HSV, and stores it in
         self.frame.'''
