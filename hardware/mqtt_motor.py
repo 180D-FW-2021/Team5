@@ -7,6 +7,7 @@ left_turn_length = 0.4
 right_turn_length = 0.5
 speed = 20
 is_stopped = False
+game_over = False
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
@@ -21,20 +22,39 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, message):
 	print("Received message:")
+	payload = message.payload.decode("utf-8")
+	print(payload)
 	if(str(message.topic) == 'ece180d/team5/motorControls'):
-		payload = message.payload.decode("utf-8")
-		print(payload)
 		if(payload == 'L' and not(is_stopped)):
 			turn_left()
 		elif(payload == 'R' and not(is_stopped)):
 			turn_right()
 		else:
-			print('Unknown command')
+			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
-		payload = message.payload.decode("utf-8")
-		print(payload)
 		if(payload == '+'):
+			global speed 
 			speed += 10
+		elif(payload == '-'):
+			global speed
+			speed -= 10
+		else:
+			try:
+				global speed
+				temp = int(payload)
+				speed = temp
+			except:
+				print('Unknown speed command')
+	elif(str(message.topic) == 'ece180d/team5/game'):
+		if(payload == 'over'):
+			global game_over
+			game_over = True
+		elif(payload == 'stop'):
+			global is_stopped
+			is_stopped = True
+		elif(payload == 'start'):
+			global is_stopped
+			is_stopped = False
 			
 
 def turn_left():
@@ -93,7 +113,7 @@ client.loop_start()
 ##Start Motor control section
 io.setmode(io.BCM)
 
-#set up motor pins. 12,13,18,19 are PWM.
+#set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
 in1 = 17
 in2 = 27
 in3 = 23
@@ -112,26 +132,26 @@ io.setup(enR, io.OUT)
 pwmL = io.PWM(enL, 100)
 pwmR = io.PWM(enR, 100)
 
-try:
-	#start driving straight. Once output is started, it continues outputting High/Low forever until stopped
-	pwmL.start(10)
-	pwmR.start(10)
-	io.output(in1, True)
-	io.output(in2, False)
-	io.output(in3, True)
-	io.output(in4, False)
-	time.sleep(20)
-	for speed in range(10, 100, 5):
+pwmL.start(10)
+pwmR.start(10)
+io.output(in1, True)
+io.output(in2, False)
+io.output(in3, True)
+io.output(in4, False)
+
+while(not(game_over)):
+	try:
+		#continuously change the duty cycle to not miss any changes from MQTT
+		#this may be computationally ineffecient but it should work
 		pwmR.ChangeDutyCycle(speed)
 		pwmL.ChangeDutyCycle(speed)
-		time.sleep(5)
-	stop_driving()
-except KeyboardInterrupt:
-	stop_driving()
-	io.cleanup()
-	client.loop_stop()
-	client.disconnect()
+	except KeyboardInterrupt:
+		stop_driving()
+		io.cleanup()
+		client.loop_stop()
+		client.disconnect()
 
+stop_driving()
 io.cleanup()
 client.loop_stop()
 client.disconnect()
