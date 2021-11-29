@@ -42,17 +42,23 @@ def on_message(client, userdata, message):
 			try:
 				global speed
 				temp = int(payload)
-				speed = temp
+				if(temp >= 20 and temp <= 100):
+					speed = temp
+				else:
+					print('invalid input speed. It must be between [20, 100]')
 			except:
 				print('Unknown speed command')
 	elif(str(message.topic) == 'ece180d/team5/game'):
-		if(payload == 'over'):
+		if(payload == 'game over'):
 			global game_over
 			game_over = True
-		elif(payload == 'stop'):
+		elif(payload == 'new game'):
+			global game_over
+			game_over = False
+		elif(payload == 'stop car'):
 			global is_stopped
 			is_stopped = True
-		elif(payload == 'start'):
+		elif(payload == 'start car'):
 			global is_stopped
 			is_stopped = False
 			
