@@ -1,5 +1,6 @@
 # Based on https://www.codepile.net/pile/ey9KAnxn
 
+from enum import Enum
 import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -8,6 +9,10 @@ from PyQt5.QtCore import *
 from cameraworker import CameraWorker
 from mqtt import Mqtt
 
+class GameState(Enum):
+    RUNNING = 0
+    PAUSED = 1
+
 class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -15,6 +20,8 @@ class MainWindow(QWidget):
         # Game logic variables
         self.lives = 3
         self.score = 0
+        self.powerups = 0
+        self.state = GameState.PAUSED
 
         # Window layout
         self.vbl = QVBoxLayout()
@@ -50,12 +57,19 @@ class MainWindow(QWidget):
 
     def carOutside(self):
         self.lives -= 1
-        # TODO: Stop car, indicate that car needs to be reset and wait for
-        # "Continue" to restart game
+        if self.lives == 0:
+            # TODO: Update GUI to say game over
+            self.mqtt.endGame()
+            self.state = GameState.PAUSED
+        else:
+            # TODO: Update GUI to tell user to reset car and say "Continue"
+            self.mqtt.pauseGame()
+            self.state = GameState.PAUSED
 
     def dotCollected(self):
         self.score += 1
-        # TODO: Update score on GUI, push speed increment to car
+        # TODO: Update score on GUI
+        self.mqtt.speedUp()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
