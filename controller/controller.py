@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from cameraworker import CameraWorker
+from mqtt import Mqtt
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -25,6 +26,9 @@ class MainWindow(QWidget):
         self.start.clicked.connect(self.startVideo)
         self.vbl.addWidget(self.start)
 
+        # Start MQTT connection
+        self.mqtt = Mqtt()
+
         # Set up overhead camera thread, but wait for user input to start it
         self.camera = CameraWorker()
         self.camera.newFrame.connect(self.newFrame)
@@ -32,6 +36,11 @@ class MainWindow(QWidget):
         self.camera.dotCollected.connect(self.dotCollected)
         
         self.setLayout(self.vbl)
+
+    def closeEvent(self, event):
+        '''Clean up all necessary components when the user closes the main
+        window.'''
+        self.mqtt.stop()
 
     def startVideo(self):
         self.camera.start()
