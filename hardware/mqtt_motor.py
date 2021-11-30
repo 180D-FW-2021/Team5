@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as io
 import time
 
-
+#these lengths are in seconds
 left_turn_length = 0.4
 right_turn_length = 0.5
 speed = 20
@@ -32,10 +32,10 @@ def on_message(client, userdata, message):
 		else:
 			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
-		if(payload == '+'):
+		if(payload == '+' and speed <= 90):
 			global speed 
 			speed += 10
-		elif(payload == '-'):
+		elif(payload == '-' and speed >= 20):
 			global speed
 			speed -= 10
 		else:
@@ -52,15 +52,14 @@ def on_message(client, userdata, message):
 		if(payload == 'game over'):
 			global game_over
 			game_over = True
-		elif(payload == 'new game'):
-			global game_over
-			game_over = False
 		elif(payload == 'stop car'):
 			global is_stopped
 			is_stopped = True
+			stop_driving()
 		elif(payload == 'start car'):
 			global is_stopped
 			is_stopped = False
+			start_driving()
 			
 
 def turn_left():
@@ -106,6 +105,14 @@ def stop_driving():
 	pwmL.stop()
 	pwmR.stop()
 
+def start_driving():
+	pwmL.start(speed)
+	pwmR.start(speed)
+	io.output(in1, True)
+	io.output(in2, False)
+	io.output(in3, True)
+	io.output(in4, False)
+
 client = mqtt.Client()
 
 client.on_connect = on_connect
@@ -138,12 +145,7 @@ io.setup(enR, io.OUT)
 pwmL = io.PWM(enL, 100)
 pwmR = io.PWM(enR, 100)
 
-pwmL.start(10)
-pwmR.start(10)
-io.output(in1, True)
-io.output(in2, False)
-io.output(in3, True)
-io.output(in4, False)
+start_driving()
 
 while(not(game_over)):
 	try:
