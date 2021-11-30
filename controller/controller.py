@@ -30,7 +30,7 @@ class MainWindow(QWidget):
 
         # Start button
         self.start = QPushButton("Arena Ready")
-        self.start.clicked.connect(self.startVideo)
+        self.start.clicked.connect(self.startGame)
         self.vbl.addWidget(self.start)
 
         # Start MQTT connection
@@ -49,7 +49,8 @@ class MainWindow(QWidget):
         window.'''
         self.mqtt.stop()
 
-    def startVideo(self):
+    def startGame(self):
+        '''To be called only when starting game from a clean slate.'''
         self.camera.start()
 
     def newFrame(self, frame):
