@@ -4,6 +4,8 @@ Code related to controlling and running the car
 ## `Car.__init__(in1, in2, in3, in4, enL, enR)`
 The constructor of the `Car` class takes 6 parameters for the 4 input pins, and the 2 enable pins. The input pins control the direction of the motor and the enable pins control the speed.
 
+Note: The enable pins MUST be PWM. On RPi, PWM are pins 12,13,18,19.
+
 ## `MQTT Commands`
 ### `ece180d/team5/motorControls`
 'L' - turns car left
