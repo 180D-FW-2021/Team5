@@ -1,12 +1,8 @@
 import paho.mqtt.client as mqtt
-import io
+import RPi.GPIO as io
 import time
 from car import Car
 
-#these lengths are in seconds
-left_turn_length = 0.4
-right_turn_length = 0.5
-speed = 20
 game_over = False
 
 #set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
@@ -30,15 +26,18 @@ def on_disconnect(client, userdata, rc):
 	else:
 		print("Expected Disconnect")
 
-def on_message(car, client, userdata, message):
+def on_message(client, userdata, message):
+	global car
 	print("Received message:")
 	payload = message.payload.decode("utf-8")
 	print(payload)
 	if(str(message.topic) == 'ece180d/team5/motorControls'):
-		if(payload == 'L' and not(car.is_stopped)):
-			car.turn_left()
-		elif(payload == 'R' and not(car.is_stopped)):
-			car.turn_right()
+		if(car.is_stopped == True):
+			print('Car is stopped')
+		elif(payload == 'L'):
+			car.turn_Left()
+		elif(payload == 'R'):
+			car.turn_Right()
 		else:
 			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
@@ -61,27 +60,28 @@ def on_message(car, client, userdata, message):
 			game_over = True
 		elif(payload == 'stop car'):
 			car.is_stopped = True
-			car.stop_driving()
+			car.stop_Driving()
 		elif(payload == 'start car'):
 			car.is_stopped = False
+			car.start_Driving()
 
 client = mqtt.Client()
 
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.on_message = on_message(car)
+client.on_message = on_message
 
 client.connect_async('mqtt.eclipseprojects.io')
 
 client.loop_start()
 
-while(not(game_over)):
-	try:
+try:
+	while(not(game_over)):
 		pass
-	except KeyboardInterrupt:
-		io.cleanup()
-		client.loop_stop()
-		client.disconnect()
+except KeyboardInterrupt:
+	io.cleanup()
+	client.loop_stop()
+	client.disconnect()
 
 io.cleanup()
 client.loop_stop()
