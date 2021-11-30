@@ -1,13 +1,23 @@
 import paho.mqtt.client as mqtt
-import RPi.GPIO as io
+import io
 import time
+from car import Car
 
 #these lengths are in seconds
 left_turn_length = 0.4
 right_turn_length = 0.5
 speed = 20
-is_stopped = False
 game_over = False
+
+#set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
+in1 = 17
+in2 = 27
+in3 = 23
+in4 = 24
+enR = 13
+enL = 19
+
+car = Car(in1, in2, in3, in4, enR, enL)
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
@@ -20,146 +30,60 @@ def on_disconnect(client, userdata, rc):
 	else:
 		print("Expected Disconnect")
 
-def on_message(client, userdata, message):
+def on_message(car, client, userdata, message):
 	print("Received message:")
 	payload = message.payload.decode("utf-8")
 	print(payload)
 	if(str(message.topic) == 'ece180d/team5/motorControls'):
-		if(payload == 'L' and not(is_stopped)):
-			turn_left()
-		elif(payload == 'R' and not(is_stopped)):
-			turn_right()
+		if(payload == 'L' and not(car.is_stopped)):
+			car.turn_left()
+		elif(payload == 'R' and not(car.is_stopped)):
+			car.turn_right()
 		else:
 			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
-		if(payload == '+' and speed <= 90):
-			global speed 
-			speed += 10
-		elif(payload == '-' and speed >= 20):
-			global speed
-			speed -= 10
+		if(payload == '+' and car.speed <= 90):
+			car.change_Speed(car.speed + 10)
+		elif(payload == '-' and car.speed >= 20):
+			car.change_Speed(car.speed - 10)
 		else:
 			try:
-				global speed
 				temp = int(payload)
 				if(temp >= 20 and temp <= 100):
-					speed = temp
+					car.change_Speed(temp)
 				else:
 					print('invalid input speed. It must be between [20, 100]')
 			except:
 				print('Unknown speed command')
 	elif(str(message.topic) == 'ece180d/team5/game'):
+		global game_over
 		if(payload == 'game over'):
-			global game_over
 			game_over = True
 		elif(payload == 'stop car'):
-			global is_stopped
-			is_stopped = True
-			stop_driving()
+			car.is_stopped = True
+			car.stop_driving()
 		elif(payload == 'start car'):
-			global is_stopped
-			is_stopped = False
-			start_driving()
-			
-
-def turn_left():
-	#current time
-	start_time = time.time()
-	#run for 1 seconds
-	while(time.time() - start_time < left_turn_length):
-		#drive left motor backward
-		io.output(in1, False)
-		io.output(in2, True)
-		#drive right motor forward
-		io.output(in3, True)
-		io.output(in4, False)
-	#once while loop is over, return to driving straight
-	io.output(in1, True)
-	io.output(in2, False)
-	io.output(in3, True)
-	io.output(in4, False)
-
-def turn_right():
-	#current time
-	start_time = time.time()
-	#run for 1 second
-	while(time.time() - start_time < right_turn_length):
-		#drive left forward
-		io.output(in1, True)
-		io.output(in2, False)
-		#drive right backward
-		io.output(in3, False)
-		io.output(in4, True)
-	#once while loop is over, return to driving straight
-	io.output(in1, True)
-	io.output(in2, False)
-	io.output(in3, True)
-	io.output(in4, False)
-
-def stop_driving():
-	#drive all inputs high to stop driving
-	io.output(in1, True)
-	io.output(in2, True)
-	io.output(in3, True)
-	io.output(in4, True)
-	pwmL.stop()
-	pwmR.stop()
-
-def start_driving():
-	pwmL.start(speed)
-	pwmR.start(speed)
-	io.output(in1, True)
-	io.output(in2, False)
-	io.output(in3, True)
-	io.output(in4, False)
+			car.is_stopped = False
 
 client = mqtt.Client()
 
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.on_message = on_message
+client.on_message = on_message(car)
 
 client.connect_async('mqtt.eclipseprojects.io')
 
 client.loop_start()
 
-##Start Motor control section
-io.setmode(io.BCM)
-
-#set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
-in1 = 17
-in2 = 27
-in3 = 23
-in4 = 24
-enR = 13
-enL = 19
-
-io.setup(in1, io.OUT)
-io.setup(in2, io.OUT)
-io.setup(in3, io.OUT)
-io.setup(in4, io.OUT)
-io.setup(enL, io.OUT)
-io.setup(enR, io.OUT)
-
-#set up pwm's at 100 Hz
-pwmL = io.PWM(enL, 100)
-pwmR = io.PWM(enR, 100)
-
-start_driving()
-
 while(not(game_over)):
 	try:
-		#continuously change the duty cycle to not miss any changes from MQTT
-		#this may be computationally ineffecient but it should work
-		pwmR.ChangeDutyCycle(speed)
-		pwmL.ChangeDutyCycle(speed)
+		pass
 	except KeyboardInterrupt:
-		stop_driving()
 		io.cleanup()
 		client.loop_stop()
 		client.disconnect()
 
-stop_driving()
 io.cleanup()
 client.loop_stop()
 client.disconnect()
+
