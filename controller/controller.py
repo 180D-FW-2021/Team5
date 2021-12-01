@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from cameraworker import CameraWorker
+from speechworker import SpeechWorker
 from mqtt import Mqtt
 
 class GameState(Enum):
@@ -41,17 +42,24 @@ class MainWindow(QWidget):
         self.camera.newFrame.connect(self.newFrame)
         self.camera.carOutside.connect(self.carOutside)
         self.camera.dotCollected.connect(self.dotCollected)
+
+        # Set up speech recognition, but wait for user input to start it
+        self.speech = SpeechWorker()
+        self.speech.keywordDetected.connect(self.keywordDetected)
         
         self.setLayout(self.vbl)
 
     def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
         window.'''
+        self.camera.stop()
+        self.speech.stop()
         self.mqtt.stop()
 
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         self.camera.start()
+        self.speech.start()
 
     def newFrame(self, frame):
         self.videoLabel.setPixmap(QPixmap.fromImage(frame))
@@ -71,6 +79,31 @@ class MainWindow(QWidget):
         self.score += 1
         # TODO: Update score on GUI
         self.mqtt.speedUp()
+
+    def keywordDetected(self, keyword):
+        if keyword == "continue":
+            if self.state == GameState.RUNNING:
+                self.mqtt.startGame()
+                # TODO: make appropriate changes to GUI
+            else:
+                # TODO: indicate on GUI that game is already running
+                pass
+        elif keyword == "game-pause":
+            if self.state == GameState.PAUSED:
+                self.mqtt.pauseGame()
+                # TODO: make appropriate changes to GUI
+            else:
+                # TODO: indicate on GUI that game is already paused
+                pass
+        elif keyword == "activate-power":
+            if self.powerups > 0:
+                self.powerups -= 1
+                # TODO: implement powerup, show powerup usage on GUI
+            else:
+                # TODO: indicate on GUI that user has no powerups
+                pass
+        else:
+            print("Unknown keyword detected: %s" % keyword)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
