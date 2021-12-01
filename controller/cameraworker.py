@@ -1,8 +1,7 @@
 # Based on https://www.codepile.net/pile/ey9KAnxn
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from PyQt5.QtGui import QImage
+from PyQt5.QtCore import QThread, pyqtSignal
 import cv2 as cv
 from random import randint
 
