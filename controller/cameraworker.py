@@ -5,6 +5,10 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import cv2 as cv
 from random import randint
 
+# From https://stackoverflow.com/questions/714063/importing-modules-from-parent-folder
+import os
+import sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from camera.overhead import Overhead
 
 class CameraWorker(QThread):
