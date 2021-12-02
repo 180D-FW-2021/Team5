@@ -433,13 +433,13 @@ while True:
 
     ############################# MQTT PUBLISH ########################
 
-    if AccXangle < -25 and turnChar != 'L':
+    if AccXangle < -40 and turnChar != 'L':
         turnChar = 'L'
         client.publish(mqttString, turnChar, qos=1)
-    elif AccXangle >= -25 and AccXangle <= 25 and turnChar != 'S':
+    elif AccXangle >= -40 and AccXangle <= 40 and turnChar != 'S':
         turnChar = 'S'
         client.publish(mqttString, turnChar, qos=1)
-    elif AccXangle > 25 and turnChar != 'R':
+    elif AccXangle > 40 and turnChar != 'R':
         turnChar = 'R'
         client.publish(mqttString, turnChar, qos=1)
 
