@@ -4,6 +4,9 @@ import time
 from car import Car
 
 game_over = False
+powerup_on = False
+time_powerup = 0
+old_speed = 20
 
 #set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
 in1 = 17
@@ -41,10 +44,10 @@ def on_message(client, userdata, message):
 		else:
 			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
-		if(payload == '+' and car.speed <= 90):
-			car.change_Speed(car.speed + 10)
-		elif(payload == '-' and car.speed >= 20):
-			car.change_Speed(car.speed - 10)
+		if(payload == '+'):
+			car.change_Speed(min(car.speed + 10, 100))
+		elif(payload == '-'):
+			car.change_Speed(max(car.speed - 10, 20))
 		else:
 			try:
 				temp = int(payload)
@@ -56,6 +59,9 @@ def on_message(client, userdata, message):
 				print('Unknown speed command')
 	elif(str(message.topic) == 'ece180d/team5/game'):
 		global game_over
+		global powerup_on
+		global time_powerup
+		global old_speed
 		if(payload == 'game over'):
 			game_over = True
 		elif(payload == 'stop car'):
@@ -64,6 +70,12 @@ def on_message(client, userdata, message):
 		elif(payload == 'start car'):
 			car.is_stopped = False
 			car.start_Driving()
+		elif(payload == 'activate power'):
+			powerup_on = True
+			time_powerup = time.time()
+			#grab the old speed before it's changed
+			old_speed = car.speed
+			car.change_Speed(40)
 
 client = mqtt.Client()
 
@@ -77,7 +89,10 @@ client.loop_start()
 
 try:
 	while(not(game_over)):
-		pass
+		#if powerup is on, and it's been 3 seconds
+		if(powerup_on == True and time.time() - time_powerup >= 3):
+			powerup_on = False
+			car.change_Speed(old_speed)
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()

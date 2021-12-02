@@ -3,7 +3,7 @@ import time
 
 class Car:
 	def __init__(self, in1, in2, in3, in4, enL, enR):
-        	#Start Motor control section
+        #Start Motor control section
 		io.setmode(io.BCM)
 
 		self.in1 = in1
