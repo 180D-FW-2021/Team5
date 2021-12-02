@@ -31,3 +31,5 @@ Controls game functions
 'stop car' - stops the car and disables inputs (L/R)
 
 'start car' - restarts car at previous speed
+
+'activate power' - activates powerup that sets the speed to half the current speed. After 3 seconds, it returns to the old speed.
