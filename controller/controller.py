@@ -55,9 +55,11 @@ class MainWindow(QWidget):
         self.camera.stop()
         self.speech.stop()
         self.mqtt.stop()
+        print("Shutting down")
 
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
+        print("Starting game")
         self.camera.start()
         self.speech.start()
 
@@ -65,6 +67,7 @@ class MainWindow(QWidget):
         self.videoLabel.setPixmap(QPixmap.fromImage(frame))
 
     def carOutside(self):
+        print("Car outside boundary")
         self.lives -= 1
         if self.lives == 0:
             # TODO: Update GUI to say game over
@@ -76,6 +79,7 @@ class MainWindow(QWidget):
             self.state = GameState.PAUSED
 
     def dotCollected(self):
+        print("Car collected dot")
         self.score += 1
         # TODO: Update score on GUI
         self.mqtt.speedUp()
