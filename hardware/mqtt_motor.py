@@ -41,6 +41,8 @@ def on_message(client, userdata, message):
 			car.turn_Left()
 		elif(payload == 'R'):
 			car.turn_Right()
+		elif(payload == 'S'):
+			pass
 		else:
 			print('Unknown direction control command')
 	elif(str(message.topic) == 'ece180d/team5/speed'):
@@ -75,7 +77,8 @@ def on_message(client, userdata, message):
 			time_powerup = time.time()
 			#grab the old speed before it's changed
 			old_speed = car.speed
-			car.change_Speed(40)
+			#change to speed to half of the old speed (or 20 minimum)
+			car.change_Speed(max(old_speed/2, 20))
 
 client = mqtt.Client()
 
