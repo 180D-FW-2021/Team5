@@ -45,6 +45,7 @@ class SpeechWorker(QThread):
         self.active = False
         self.porcupine.delete()
         self.recorder.delete()
+        self.quit()
 
     def getKeywords(self, keywordPaths):
         '''Given the list of keyword paths, adds a list of the keywords
