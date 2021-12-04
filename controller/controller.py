@@ -34,6 +34,8 @@ class MainWindow(QWidget):
         self.start.clicked.connect(self.startGame)
         self.vbl.addWidget(self.start)
 
+        
+
         # Start MQTT connection
         self.mqtt = Mqtt()
 
@@ -52,8 +54,8 @@ class MainWindow(QWidget):
     def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
         window.'''
-        self.camera.stop()
-        self.speech.stop()
+        #self.camera.stop()
+        #self.speech.stop()
         self.mqtt.stop()
         print("Shutting down")
 
@@ -61,8 +63,8 @@ class MainWindow(QWidget):
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         print("Starting game")
-        self.camera.start()
-        self.speech.start()
+        #self.camera.start()
+        #self.speech.start()
 
     @pyqtSlot(QImage)
     def newFrame(self, frame):
