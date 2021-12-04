@@ -24,12 +24,12 @@ class Car:
 		self.pwmL = io.PWM(self.enL, 100)
 		self.pwmR = io.PWM(self.enR, 100)
 
-		self.is_stopped = False
+		self.is_stopped = True
 		self.game_over = False
 		self.speed = 20
 
-		self.left_turn_length = 1
-		self.right_turn_length = 1
+		self.left_turn_length = 0.5
+		self.right_turn_length = 0.5
 
 		self.start_Driving()
 
