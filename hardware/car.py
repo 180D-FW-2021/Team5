@@ -28,8 +28,8 @@ class Car:
 		self.game_over = False
 		self.speed = 20
 
-		self.left_turn_length = 0.4
-		self.right_turn_length = 0.5
+		self.left_turn_length = 1
+		self.right_turn_length = 1
 
 		self.start_Driving()
 
@@ -54,6 +54,9 @@ class Car:
 		self.speed = inputSpeed
 		self.pwmR.ChangeDutyCycle(self.speed)
 		self.pwmL.ChangeDutyCycle(self.speed)
+
+		#self.left_turn_length = 0.4
+		#self.right_turn_length = 0.5
 
 	def turn_Left(self):
 		if(self.is_stopped == True):

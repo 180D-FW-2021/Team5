@@ -96,6 +96,7 @@ try:
 		if(powerup_on == True and time.time() - time_powerup >= 3):
 			powerup_on = False
 			car.change_Speed(old_speed)
+			print('Powerup over')
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()
