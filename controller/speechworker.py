@@ -27,6 +27,7 @@ class SpeechWorker(QThread):
             sensitivities=self.sensitivities)
         self.recorder = PvRecorder(device_index=0,
             frame_length=self.porcupine.frame_length)
+        self.recorder.start()
 
         print('Listening {')
         for keyword, sensitivity in zip(self.keywords, self.sensitivities):
@@ -38,12 +39,13 @@ class SpeechWorker(QThread):
             result = self.porcupine.process(pcm)
             if result >= 0:
                 print("Detected %s" % self.keywords[result])
-                self.keywordDetected.emit(self.keywords[result])
+                self.keywordDetected.emit(self.keywords[result].strip())
 
     def stop(self):
         self.active = False
         self.porcupine.delete()
         self.recorder.delete()
+        self.quit()
 
     def getKeywords(self, keywordPaths):
         '''Given the list of keyword paths, adds a list of the keywords

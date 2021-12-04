@@ -59,33 +59,40 @@ class MainWindow(QWidget):
         self.mqtt.stop()
         print("Shutting down")
 
+    @pyqtSlot()
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         print("Starting game")
         #self.camera.start()
         #self.speech.start()
 
+    @pyqtSlot(QImage)
     def newFrame(self, frame):
         self.videoLabel.setPixmap(QPixmap.fromImage(frame))
 
+    @pyqtSlot()
     def carOutside(self):
-        print("Car outside boundary")
-        self.lives -= 1
-        if self.lives == 0:
-            # TODO: Update GUI to say game over
-            self.mqtt.endGame()
-            self.state = GameState.PAUSED
-        else:
-            # TODO: Update GUI to tell user to reset car and say "Continue"
-            self.mqtt.pauseGame()
-            self.state = GameState.PAUSED
+        if self.state != GameState.PAUSED:
+            print("Car outside boundary")
+            self.lives -= 1
+            if self.lives == 0:
+                # TODO: Update GUI to say game over
+                self.mqtt.endGame()
+                self.state = GameState.PAUSED
+            else:
+                # TODO: Update GUI to tell user to reset car and say "Continue"
+                self.mqtt.pauseGame()
+                self.state = GameState.PAUSED
 
+    @pyqtSlot()
     def dotCollected(self):
-        print("Car collected dot")
-        self.score += 1
-        # TODO: Update score on GUI
-        self.mqtt.speedUp()
+        if self.state != GameState.PAUSED:
+            print("Car collected dot")
+            self.score += 1
+            # TODO: Update score on GUI
+            self.mqtt.speedUp()
 
+    @pyqtSlot(str)
     def keywordDetected(self, keyword):
         if keyword == "continue":
             if self.state == GameState.RUNNING:
