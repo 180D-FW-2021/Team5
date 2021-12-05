@@ -77,41 +77,46 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
         window.'''
-        #self.camera.stop()
-        #self.speech.stop()
+        self.camera.stop()
+        self.speech.stop()
         self.mqtt.stop()
         print("Shutting down")
 
+    @pyqtSlot()
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         print("Starting game")
-        #self.camera.start()
-        #self.speech.start()
+        self.camera.start()
+        self.speech.start()
 
+    @pyqtSlot(QImage)
     def newFrame(self, frame):
         self.videoLabel.setPixmap(QPixmap.fromImage(frame))
 
+    @pyqtSlot()
     def carOutside(self):
-        print("Car outside boundary")
-        self.lives -= 1
-        if self.lives == 0:
-            # TODO: Update GUI to say game over
-            self.mqtt.endGame()
-            self.state = GameState.PAUSED
-            self.tooltip.setText("GAME OVER")
-            self.redFlash(self.tooltip)
-        else:
-            # TODO: Update GUI to tell user to reset car and say "Continue"
-            self.mqtt.pauseGame()
-            self.state = GameState.PAUSED
-            self.tooltip.setText("Reset car and say \"CONTINUE\"")
+        if self.state != GameState.PAUSED:
+            print("Car outside boundary")
+            self.lives -= 1
+            if self.lives == 0:
+                self.mqtt.endGame()
+                self.state = GameState.PAUSED
+                self.tooltip.setText("GAME OVER")
+                self.redFlash(self.tooltip)
+            else:
+                self.mqtt.pauseGame()
+                self.state = GameState.PAUSED
+                self.tooltip.setText("Reset car and say \"CONTINUE\"")
 
+    @pyqtSlot()
     def dotCollected(self):
-        print("Car collected dot")
-        self.score += 1
-        # TODO: Update score on GUI // no change needed
-        self.mqtt.speedUp()
+        if self.state != GameState.PAUSED:
+            print("Car collected dot")
+            self.score += 1
+            # TODO: Update score on GUI // no change needed
+            self.mqtt.speedUp()
 
+    @pyqtSlot(str)
     def keywordDetected(self, keyword):
         if keyword == "continue":
             if self.state == GameState.PAUSED:
@@ -129,6 +134,7 @@ class MainWindow(QMainWindow):
             else:
                 # TODO: indicate on GUI that game is already paused
                 self.redFlash(self.tooltip)
+                
         elif keyword == "activate-power":
             if self.powerups > 0:
                 self.powerups -= 1
