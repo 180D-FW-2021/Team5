@@ -19,13 +19,13 @@ class Mqtt(object):
         self.client.disconnect()
 
     def startGame(self):
-        self.client.publish(self.gameTopic, "start", qos=1)
+        self.client.publish(self.gameTopic, "start car", qos=1)
 
     def pauseGame(self):
-        self.client.publish(self.gameTopic, "stop", qos=1)
+        self.client.publish(self.gameTopic, "stop car", qos=1)
 
     def endGame(self):
-        self.client.publish(self.gameTopic, "over", qos=1)
+        self.client.publish(self.gameTopic, "game over", qos=1)
 
     def speedUp(self):
         self.client.publish(self.speedTopic, "+", qos=1)
