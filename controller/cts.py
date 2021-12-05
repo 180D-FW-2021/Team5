@@ -19,9 +19,11 @@ class GameState(Enum):
     PAUSED = 1
     SUPER_FUCKING_FAST = 2
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        widget = QWidget()
+        self.setCentralWidget(widget)
 
         # Game logic variables
         self.lives = 3
@@ -30,17 +32,36 @@ class MainWindow(QWidget):
         self.state = GameState.PAUSED
 
         # Window layout
-        self.vbl = QVBoxLayout()
+        self.vbl = QVBoxLayout(widget)
         self.videoLabel = QLabel()
         self.vbl.addWidget(self.videoLabel)
 
-        # Start button
+        #clock clock clock
+        self.timer = QTimer()
+
+        # Start MQTT connection
+        self.mqtt = Mqtt()
+
+        # Set up overhead camera thread, but wait for user input to start it
+        self.camera = CameraWorker()
+        self.camera.newFrame.connect(self.newFrame)
+        #self.camera.carOutside.connect(self.carOutside)
+        #self.camera.dotCollected.connect(self.dotCollected)
+
+        # Set up speech recognition, but wait for user input to start it
+        #self.speech = SpeechWorker()
+        #self.speech.keywordDetected.connect(self.keywordDetected)
+        
+        self.setLayout(self.vbl)
+
+    def initUI(self):
+                # Start button
         self.start = QPushButton("Arena Ready")
         self.start.clicked.connect(self.startGame)
         self.vbl.addWidget(self.start)
 
         #what the fuck is happening lol
-        self.layout = QVBoxLayout() 
+        self.layout = QVBoxLayout(widget) 
         self.gameover = QLabel("GAME OVER BRUH")
         self.layout.addWidget(self.gameover)
         #self.l1.setStyleSheet("QLabel {background-color: red;}")
@@ -55,24 +76,6 @@ class MainWindow(QWidget):
         self.layout.addWidget(self.life)
         self.powa = QLabel("YOU GOT " + str(self.powerups) + " powerups")
         self.layout.addWidget(self.powa)
-
-        #clock clock clock
-        self.timer = QTimer()
-
-        # Start MQTT connection
-        self.mqtt = Mqtt()
-
-        # Set up overhead camera thread, but wait for user input to start it
-        #self.camera = CameraWorker()
-        #self.camera.newFrame.connect(self.newFrame)
-        #self.camera.carOutside.connect(self.carOutside)
-        #self.camera.dotCollected.connect(self.dotCollected)
-
-        # Set up speech recognition, but wait for user input to start it
-        #self.speech = SpeechWorker()
-        #self.speech.keywordDetected.connect(self.keywordDetected)
-        
-        self.setLayout(self.vbl)
 
     def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
