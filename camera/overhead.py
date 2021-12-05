@@ -19,8 +19,8 @@ class Overhead(object):
         self.redTopHigh = np.uint8([180,255,255])
         self.greenLow = np.uint8([25,50,50]) # Actually for yellow post-its
         self.greenHigh = np.uint8([45,255,255])
-        self.blueLow = np.uint8([100,50,50])
-        self.blueHigh = np.uint8([130,255,255])
+        self.blueLow = np.uint8([80,20,30])
+        self.blueHigh = np.uint8([170,255,255])
 
         # Other variables
         self.boundary = None # Boundary contour
@@ -42,6 +42,10 @@ class Overhead(object):
             if (self.frame is not None) and (self.frame.any()):
                 self.findBoundary()
                 self.findDots()
+
+                # k = cv.waitKey(5) & 0xFF
+                # if k == 27:
+                #     break
 
     def loop(self, target):
         '''Main function to be called each game loop. Takes in the index of
@@ -78,6 +82,7 @@ class Overhead(object):
         an approximation of the contour to smooth any details, and stores the
         approximation in self.boundary.'''
         blueObjects = cv.inRange(self.frame, self.blueLow, self.blueHigh)
+        # cv.imshow("maybe boundary", blueObjects)
         blueContours, _ = cv.findContours(blueObjects,
                                     cv.RETR_LIST,
                                     cv.CHAIN_APPROX_NONE)
@@ -93,6 +98,7 @@ class Overhead(object):
         '''Finds all green objects with contour area larger than self.threshold.
         Stores their bounding circles in self.dots as ((x,y),radius).'''
         greenObjects = cv.inRange(self.frame, self.greenLow, self.greenHigh)
+        # cv.imshow("maybe dots", greenObjects)
         greenContours, _ = cv.findContours(greenObjects,
                                         cv.RETR_LIST,
                                         cv.CHAIN_APPROX_SIMPLE)
@@ -145,7 +151,7 @@ def inContour(cnt, point):
     return cv.pointPolygonTest(cnt, point, False) >= 0
 
 if __name__ == "__main__":
-    overhead = Overhead(2500, 5500)
+    overhead = Overhead(500, 2000)
     overhead.setup()
     while True:
         inBoundary, gotTarget = overhead.loop(0)

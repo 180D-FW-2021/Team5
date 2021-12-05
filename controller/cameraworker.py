@@ -19,7 +19,7 @@ class CameraWorker(QThread):
 
     def run(self):
         self.active = True
-        self.overhead = Overhead(2500, 5500)
+        self.overhead = Overhead(500, 2000)
         self.overhead.setup()
         target = self.newTarget(-1)
         while self.active:

@@ -79,6 +79,7 @@ class MainWindow(QMainWindow):
         window.'''
         self.camera.stop()
         self.speech.stop()
+        self.mqtt.endGame()
         self.mqtt.stop()
         print("Shutting down")
 
@@ -88,6 +89,8 @@ class MainWindow(QMainWindow):
         print("Starting game")
         self.camera.start()
         self.speech.start()
+        self.mqtt.startGame()
+        self.state = GameState.RUNNING
 
     @pyqtSlot(QImage)
     def newFrame(self, frame):
@@ -120,7 +123,9 @@ class MainWindow(QMainWindow):
     def keywordDetected(self, keyword):
         if keyword == "continue":
             if self.state == GameState.PAUSED:
+                print("Continuing game")
                 self.mqtt.startGame()
+                self.state = GameState.RUNNING
                 # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"GAME PAUSE\" to pause")
             else:
@@ -128,7 +133,9 @@ class MainWindow(QMainWindow):
                 self.redFlash(self.tooltip)
         elif keyword == "game-pause":
             if self.state == GameState.RUNNING:
+                print("Pausing game")
                 self.mqtt.pauseGame()
+                self.state == GameState.PAUSED
                 # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"CONTINUE\" to continue")
             else:
@@ -137,7 +144,9 @@ class MainWindow(QMainWindow):
                 
         elif keyword == "activate-power":
             if self.powerups > 0:
+                print("Powerup")
                 self.powerups -= 1
+                self.mqtt.activatePower()
                 # TODO: implement powerup, show powerup usage on GUI
                 self.tooltip.setText("POWERUP USED!")
                 self.timer.singleShot(6000, lambda x=self.tooltip: x.setText("Say \"GAME PAUSE\" to pause"))
