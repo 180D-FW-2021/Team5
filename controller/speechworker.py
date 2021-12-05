@@ -13,8 +13,8 @@ class SpeechWorker(QThread):
 
         modelBasePath = "../speech/porcupine_models/"
         modelFiles = ["continue_en_windows_v2_0_0.ppn",
-                      "game-pause_en_windows_v2_0_0.ppn"]
-                      #"activate-power__en_windows_2021-12-18-utc_v1_9_0.ppn"]
+                      "game-pause_en_windows_v2_0_0.ppn",
+                      "activate-power_en_windows_v2_0_0.ppn"]
         keywordPaths = [modelBasePath + f for f in modelFiles]
         self.getKeywords(keywordPaths)
 
