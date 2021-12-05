@@ -173,6 +173,7 @@ class MainWindow(QWidget):
             if self.powerups > 0:
                 print("Powerup")
                 self.powerups -= 1
+                self.mqtt.activatePower()
                 # TODO: implement powerup, show powerup usage on GUI
                 self.gameover.hide()
                 self.outside.hide()

@@ -27,6 +27,9 @@ class Mqtt(object):
     def endGame(self):
         self.client.publish(self.gameTopic, "game over", qos=1)
 
+    def activatePower(self):
+        self.client.publish(self.gameTopic, "activate power", qos=1)
+
     def speedUp(self):
         self.client.publish(self.speedTopic, "+", qos=1)
 
