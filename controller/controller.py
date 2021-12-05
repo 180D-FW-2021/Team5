@@ -14,7 +14,7 @@ class GameState(Enum):
     RUNNING = 0
     PAUSED = 1
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
@@ -23,46 +23,6 @@ class MainWindow(QWidget):
         self.score = 0
         self.powerups = 0
         self.state = GameState.PAUSED
-
-        # Window layout
-        self.vbl = QVBoxLayout()
-        self.videoLabel = QLabel()
-        self.vbl.addWidget(self.videoLabel)
-
-        # Start button
-        self.start = QPushButton("Arena Ready")
-        self.start.clicked.connect(self.startGame)
-        self.vbl.addWidget(self.start)
-
-        #what the fuck is happening lol
-        self.layout = QVBoxLayout() 
-        self.gameover = QLabel("GAME OVER BRUH")
-        self.layout.addWidget(self.gameover)
-        #self.l1.setStyleSheet("QLabel {background-color: red;}")
-        self.gameover.setAlignment(Qt.AlignCenter)
-        self.outside = QLabel("reset da car and say continue")
-        self.layout.addWidget(self.outside)
-        self.points = QLabel(str(self.score))
-        self.layout.addWidget(self.points)
-        self.currentstate = QLabel(("CURRENT STATE: " + str(self.state)))
-        self.layout.addWidget(self.currentstate)
-        self.life = QLabel("YOU HAVE " + str(self.lives) + " lives")
-        self.layout.addWidget(self.life)
-        self.powa = QLabel("YOU GOT " + str(self.powerups) + " powerups")
-        self.layout.addWidget(self.powa)
-
-        self.gameover.show()
-        self.outside.show()
-        self.points.show()
-        self.currentstate.show()
-        self.life.show()
-        self.powa.show()
-
-        #clock clock clock
-        self.timer = QTimer()
-
-        # Start MQTT connection
-        self.mqtt = Mqtt()
 
         # Set up overhead camera thread, but wait for user input to start it
         self.camera = CameraWorker()
@@ -74,7 +34,45 @@ class MainWindow(QWidget):
         self.speech = SpeechWorker()
         self.speech.keywordDetected.connect(self.keywordDetected)
         
-        self.setLayout(self.vbl)
+        # Start MQTT connection
+        self.mqtt = Mqtt()
+
+        # clock clock clock
+        self.timer = QTimer(self)
+
+        # GUI layout
+        #init
+        self.setGeometry(100, 100, 1000, 600)
+        self.setWindowTitle('please work')
+        self.layout1 = QHBoxLayout()
+
+        #video box / left side
+        self.videoLabel = QLabel(self)
+        self.layout1.addWidget(self.videoLabel)
+
+        # right side
+        self.layout2 = QVBoxLayout()
+        # Start button
+        self.start = QPushButton("Arena Ready")
+        self.start.clicked.connect(self.startGame)
+        self.layout2.addWidget(self.start)
+
+        self.currentState = QLabel("GAME STATE NOW: " + str(self.state), self)
+        self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
+        self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
+        self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
+        self.tooltip = QLabel("Say \"GAME PAUSE\" to pause", self)
+
+        self.layout2.addWidget(self.currentState)
+        self.layout2.addWidget(self.currentScore)
+        self.layout2.addWidget(self.currentLives)
+        self.layout2.addWidget(self.currentPower)
+        self.layout2.addWidget(self.tooltip)
+        self.layout1.addLayout(self.layout2)
+        
+        widget = QWidget()
+        widget.setLayout(self.layout1)
+        self.setCentralWidget(widget)
 
     def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
@@ -104,32 +102,21 @@ class MainWindow(QWidget):
             print("Car outside boundary")
             self.lives -= 1
             if self.lives == 0:
-                self.gameover.show()
-                self.outside.hide()
-                self.points.hide()
-                self.currentstate.hide()
-                self.life.hide()
-                self.powa.hide()
-
                 self.mqtt.endGame()
                 self.state = GameState.PAUSED
+                self.tooltip.setText("GAME OVER")
+                self.redFlash(self.tooltip)
             else:
-                self.gameover.hide()
-                self.outside.show()
-                self.points.show()
-                self.currentstate.show()
-                self.life.show()
-                self.powa.show()
-
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
+                self.tooltip.setText("Reset car and say \"CONTINUE\"")
 
     @pyqtSlot()
     def dotCollected(self):
         if self.state != GameState.PAUSED:
             print("Car collected dot")
             self.score += 1
-            # TODO: Update score on GUI
+            # TODO: Update score on GUI // no change needed
             self.mqtt.speedUp()
 
     @pyqtSlot(str)
@@ -140,55 +127,38 @@ class MainWindow(QWidget):
                 self.mqtt.startGame()
                 self.state = GameState.RUNNING
                 # TODO: make appropriate changes to GUI
-                # the appropriate changes are: need to update da state
-                # and put da score and da powa ups
-                # truee
-                # and put da lives 
-                self.gameover.hide()
-                self.outside.hide()
-                self.points.show()
-                self.currentstate.show()
-                self.life.show()
-                self.powa.show()
+                self.tooltip.setText("Say \"GAME PAUSE\" to pause")
             else:
                 # TODO: indicate on GUI that game is already running
-                pass
+                self.redFlash(self.tooltip)
         elif keyword == "game-pause":
             if self.state == GameState.RUNNING:
                 print("Pausing game")
                 self.mqtt.pauseGame()
                 self.state == GameState.PAUSED
                 # TODO: make appropriate changes to GUI
-                self.gameover.hide()
-                self.outside.hide()
-                self.points.show()
-                self.currentstate.show()
-                self.life.show()
-                self.powa.show()
+                self.tooltip.setText("Say \"CONTINUE\" to continue")
             else:
                 # TODO: indicate on GUI that game is already paused
-                #hopefully self.currentstate updates
-                pass
+                self.redFlash(self.tooltip)
+                
         elif keyword == "activate-power":
             if self.powerups > 0:
                 print("Powerup")
                 self.powerups -= 1
                 self.mqtt.activatePower()
                 # TODO: implement powerup, show powerup usage on GUI
-                self.gameover.hide()
-                self.outside.hide()
-                self.points.show()
-                self.currentstate.show()
-                self.life.show()
-                self.powa.show()
+                self.tooltip.setText("POWERUP USED!")
+                self.timer.singleShot(6000, lambda x=self.tooltip: x.setText("Say \"GAME PAUSE\" to pause"))
             else:
                 # TODO: indicate on GUI that user has no powerups
-                self.powa.setStyleSheet("QLabel {background-color: red;}")
-                self.timer.singleShot(2*1000)
-                self.powa.setStyleSheet("QLabel {background-color: white;}")
-                pass
+                self.redFlash(self.currentPower)
         else:
             print("Unknown keyword detected: %s" % keyword)
+
+    def redFlash(self,label):
+        self.timer.singleShot(5000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
+        self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
