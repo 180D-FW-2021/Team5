@@ -438,7 +438,7 @@ while True:
         client.publish(mqttString, turnChar, qos=1)
     elif AccXangle >= -40 and AccXangle <= 40 and turnChar != 'S':
         turnChar = 'S'
-        client.publish(mqttString, turnChar, qos=1)
+        #client.publish(mqttString, turnChar, qos=1)
     elif AccXangle > 40 and turnChar != 'R':
         turnChar = 'R'
         client.publish(mqttString, turnChar, qos=1)
