@@ -34,7 +34,8 @@ class CameraWorker(QThread):
 
     def stop(self):
         self.active = False
-        self.overhead.stop()
+        if self.overhead:
+            self.overhead.stop()
         self.quit()
 
     def formatFrame(self, frame):
