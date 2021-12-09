@@ -8,7 +8,9 @@ Note: The enable pins MUST be PWM. On RPi, PWM are pins 12,13,18,19.
 
 ## `MQTT Commands`
 ### topic = `ece180d/team5/motorControls`
+
 payload:
+
 'L' - turns car left
 
 'R' - turns car right
@@ -18,7 +20,9 @@ after running in different direction, it then outputs the in pins to drive strai
 
 ### topic = `ece180d/team5/speed`
 the speed can only be between [20, 100]
+
 payload:
+
 '+' - increases the speed by 10%
 
 '-' - decreases the speed by 10%
@@ -27,7 +31,9 @@ payload:
 
 ### topic = `ece180d/team5/game`
 Controls game functions
+
 payload:
+
 'game over' - stops the game and ends the script
 
 'stop car' - stops the car and disables inputs (L/R)
