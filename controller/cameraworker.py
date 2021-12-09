@@ -19,7 +19,7 @@ class CameraWorker(QThread):
 
     def run(self):
         self.active = True
-        self.overhead = Overhead(500, 2000)
+        self.overhead = Overhead(1000, 2500)
         self.overhead.setup()
         target = self.newTarget(-1)
         while self.active:
@@ -34,14 +34,14 @@ class CameraWorker(QThread):
 
     def stop(self):
         self.active = False
-        self.overhead.stop()
+        if self.overhead:
+            self.overhead.stop()
         self.quit()
 
     def formatFrame(self, frame):
         '''Take an OpenCv frame in BGR and convert it to a format that's
         friendly to use with a PyQt PixMap.'''
         frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-        frame = cv.flip(frame, 1)
         self.frame = frame.copy() # Make a copy and keep a reference so GUI doesn't segfault later
         qtFrame = QImage(self.frame.data, self.frame.shape[1], self.frame.shape[0], QImage.Format_RGB888)
         newFrame = qtFrame.scaled(640, 480, Qt.KeepAspectRatio)

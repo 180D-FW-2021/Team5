@@ -21,7 +21,7 @@ class MainWindow(QMainWindow):
         # Game logic variables
         self.lives = 3
         self.score = 0
-        self.powerups = 0
+        self.powerups = 3
         self.state = GameState.PAUSED
 
         # Set up overhead camera thread, but wait for user input to start it
@@ -42,7 +42,6 @@ class MainWindow(QMainWindow):
 
         # GUI layout
         #init
-        self.setGeometry(100, 100, 1000, 600)
         self.setWindowTitle('please work')
         self.layout1 = QHBoxLayout()
 
@@ -57,7 +56,7 @@ class MainWindow(QMainWindow):
         self.start.clicked.connect(self.startGame)
         self.layout2.addWidget(self.start)
 
-        self.currentState = QLabel("GAME STATE NOW: " + str(self.state), self)
+        self.currentState = QLabel("GAME STATE NOW: " + str(self.state.name), self)
         self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
         self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
         self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
@@ -91,6 +90,7 @@ class MainWindow(QMainWindow):
         self.speech.start()
         self.mqtt.startGame()
         self.state = GameState.RUNNING
+        self.updateGui()
 
     @pyqtSlot(QImage)
     def newFrame(self, frame):
@@ -106,10 +106,12 @@ class MainWindow(QMainWindow):
                 self.state = GameState.PAUSED
                 self.tooltip.setText("GAME OVER")
                 self.redFlash(self.tooltip)
+                self.updateGui()
             else:
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
                 self.tooltip.setText("Reset car and say \"CONTINUE\"")
+                self.updateGui()
 
     @pyqtSlot()
     def dotCollected(self):
@@ -118,6 +120,7 @@ class MainWindow(QMainWindow):
             self.score += 1
             # TODO: Update score on GUI // no change needed
             self.mqtt.speedUp()
+            self.updateGui()
 
     @pyqtSlot(str)
     def keywordDetected(self, keyword):
@@ -128,19 +131,23 @@ class MainWindow(QMainWindow):
                 self.state = GameState.RUNNING
                 # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"GAME PAUSE\" to pause")
+                self.updateGui()
             else:
                 # TODO: indicate on GUI that game is already running
                 self.redFlash(self.tooltip)
+                self.updateGui()
         elif keyword == "game-pause":
             if self.state == GameState.RUNNING:
                 print("Pausing game")
                 self.mqtt.pauseGame()
-                self.state == GameState.PAUSED
+                self.state = GameState.PAUSED
                 # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"CONTINUE\" to continue")
+                self.updateGui()
             else:
                 # TODO: indicate on GUI that game is already paused
                 self.redFlash(self.tooltip)
+                self.updateGui()
                 
         elif keyword == "activate-power":
             if self.powerups > 0:
@@ -150,15 +157,23 @@ class MainWindow(QMainWindow):
                 # TODO: implement powerup, show powerup usage on GUI
                 self.tooltip.setText("POWERUP USED!")
                 self.timer.singleShot(6000, lambda x=self.tooltip: x.setText("Say \"GAME PAUSE\" to pause"))
+                self.updateGui()
             else:
                 # TODO: indicate on GUI that user has no powerups
                 self.redFlash(self.currentPower)
+                self.updateGui()
         else:
             print("Unknown keyword detected: %s" % keyword)
 
     def redFlash(self,label):
         self.timer.singleShot(5000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
         self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
+
+    def updateGui(self):
+        self.currentState.setText("GAME STATE NOW: " + str(self.state.name))
+        self.currentScore.setText("YOUR SCORE ARE: " + str(self.score))
+        self.currentLives.setText("YOUR LIVES IS: " + str(self.lives))
+        self.currentPower.setText("YOUR POWERUPS IS: " + str(self.powerups))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -44,8 +44,10 @@ class SpeechWorker(QThread):
 
     def stop(self):
         self.active = False
-        self.porcupine.delete()
-        self.recorder.delete()
+        if self.porcupine:
+            self.porcupine.delete()
+        if self.recorder:
+            self.recorder.delete()
         self.quit()
 
     def getKeywords(self, keywordPaths):
