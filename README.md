@@ -1,2 +1,54 @@
 # beep boop want to drive
-## ECE 180D Team 5
+**ECE 180D Team 5**: Derrick Huynh, David Kao, Robert Peralta, Lucas Wolter
+
+## Overview
+Beep boop want to drive is a reincarnation of the classic game [Snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre)), aiming to bridge the gap between software and hardware in an engaging and entertaining game. In beep boop want to drive, the user wirelessly steers a hardware car, which they navigate around a game arena marked out in tape. There are several dots placed in the arena and the user is directed to random dots in turn. The user is provided 3 powerups, which they can use to cut the speed of the car in half for 3 seconds. Picking up a dot increases the speed of the car up to maximum speed after 8 dots. The goal of the game is to collect as many dots as possible without leaving the arena 3 times.
+
+The game features a hardware, remote-controlled car, gesture recognition steering, speech recognition game controls, and an overhead camera that uses computer vision to track the game. A central laptop orchestrates the entire game, seamlessly blending the disjoint modules together.
+
+## Setup
+The game is has 3 computers which all require different software running on them: the RPi with the IMU, the RPi on the car, and the controlling laptop. In total, you will need the following:
+
+* Laptop (1)
+* External webcam or smartphone (1)
+* RaspberryPi Zero WH (2)
+* BerryIMUv3 (1)
+* Hardware car
+* Miscellanous wires
+
+Note that the hardware car is not described in detail here. Currently, we have no schematic of the car to share, but the car is based on an H-bridge and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi.
+
+### Arena
+The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by color. By default, the boundary is blue, the dots are yellow, and the car is red. These can be changed in [`camera/overhead.py`](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py). For the arena to be valid, there must be an enclosed blue outline, at least two yellow dots, and a red region.
+
+The arena is overseen by the external camera. This can be a standard webcam or a smartphone running [DroidCam](https://www.dev47apps.com/). Importantly, the code assumes this camera is a secondary webcam for the controller laptop. If this camera is the primary webcam, change [this line](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py#L41) in `camera/overhead.py` to
+
+    self.camera = cv.VideoCapture(0)
+
+### Gesture RPi
+
+### Car RPi
+
+### Controller Laptop
+Clone the repository.
+
+    git clone https://github.com/180D-FW-2021/Team5.git
+
+In an Anaconda shell, change the directory to `Team5/controller` and create a new environment with the YAML file.
+
+    cd Team5/controller
+    conda env create -f environment.yml
+
+Activate the environment and run `controller.py`.
+
+    conda activate controller
+    python controller.py
+
+After a moment, the GUI will appear with an "Arena Ready" button. Click the button only once the arena is properly set up to start the game.
+
+The GUI will display a green circle over each dot it recognizes. If the game is not recognizing a dot in the arena, there are two possible solutions:
+
+1. If it looks like the camera is seeing the correct color for the dot (i.e. the dot does not appear washed-out or a different color in the GUI), then it may be that the dot is either too small or too large to pass the computer vision's noise filter. To fix this, adjust the values passed into `Overhead()` in [`controller/cameraworker.py`](https://github.com/180D-FW-2021/Team5/blob/main/controller/cameraworker.py#L22). These are the minimum and maximum areas to be considered as dots. If your dots seem particularly small on the GUI, try lowering the minimum, and vice versa.
+2. If the color in the GUI seems inaccurate or on the edge of the assigned color (e.g. a particularly greenish yellow), then it is likely that the computer vision code is not searching in the correct color range. Adjust the color range lows and highs in [`camera/overhead.py`](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py#L14) until the camera is able to recognize all dots. These values are in the [HSV](https://en.wikipedia.org/wiki/HSL_and_HSV) color space. Note that the code uses hue values that range from 0 to 180, contrasting with the standard 0 to 360 range one might find on a color picker.
+
+Running `python controller.py` may fail with an error about a license expiring. Because this project uses the free version of [Porcupine](https://picovoice.ai/platform/porcupine/), the speech recognition models eventually expire. If a user so desires, they could train a new model of the same keywords and place the model in `speech/porcupine_models`. The user would also have to change the file paths in [`controller/speechworker.py`](https://github.com/180D-FW-2021/Team5/blob/main/controller/speechworker.py#L15).
