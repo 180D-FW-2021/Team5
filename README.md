@@ -14,9 +14,11 @@ The game is has 3 computers which all require different software running on them
 * RaspberryPi Zero WH (2)
 * BerryIMUv3 (1)
 * Hardware car
-* Miscellanous wires
+* 9V Battery
+* 5V battery powerbank
+* Miscellanous wires (Recommended to have ~8 Female-Male)
 
-Note that the hardware car is not described in detail here. Currently, we have no schematic of the car to share, but the car is based on an H-bridge and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi.
+Note that the hardware car is not described in detail here. Currently, we have no schematic of the car to share, but the car is based on an L293 H-bridge (adafruit link: https://www.adafruit.com/product/807) and 2 9V DC motors, and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi. 
 
 ### Arena
 The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by color. By default, the boundary is blue, the dots are yellow, and the car is red. These can be changed in [`camera/overhead.py`](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py). For the arena to be valid, there must be an enclosed blue outline, at least two yellow dots, and a red region.
@@ -28,7 +30,28 @@ The arena is overseen by the external camera. This can be a standard webcam or a
 ### Gesture RPi
 
 ### Car RPi
+The only set up needed for the Car RPi is to connect to the internet by modifying the wpa_supplicant.conf file. Once connected, run 'ifconfig' to obtain the IP address under the WLAN0: inet. Then enter the settings to enable remote ssh. You will need to install paho-mqtt onto your virtual environment.
 
+Then connect the RPi to the powerbank, then remote ssh and clone the repo.
+    ssh pi@<ip address>
+    git clone https://github.com/180D-FW-2021/Team5.git
+    
+Then go to the 'Team5/hardware' folder. You will need to modify the file to change any pin assignments and mqtt topics as needed. Note that enL and enR MUST be PWM pins (pins 12,13,18,19)
+    nano mqtt_motor.py
+        in1 = ...
+        in2 = ...
+        etc.
+    
+Then you can activate your virtual environment (refer to controller laptop section to create an virtual environment) and run the main program.
+    
+    conda activate controller
+    python mqtt_motor.py
+
+1. If your car responds to messages that your controller did not send, make sure that you are not responding to other messages on the same mqtt topic. If this occurs, please change the topic on all MQTT programs. 
+2. Note: you can modify the turning length of the car by editting the car.py file's left_turn_length and right_turn_length.
+3. If you suddenly lose connection to the car, it is possible that the car left the range of the remote ssh. In this case, you will need to reconnect to the car and rerun the program. In the case that the motors are still running, press Ctrl+C to abort the program (this will cause the car to stop the motors) and you may restart the game as normal.
+
+    
 ### Controller Laptop
 Clone the repository.
 
