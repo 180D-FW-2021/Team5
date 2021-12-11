@@ -28,6 +28,36 @@ The arena is overseen by the external camera. This can be a standard webcam or a
     self.camera = cv.VideoCapture(0)
 
 ### Gesture RPi
+These setup instructions are adapted from lab 4.
+To setup the IMU controller, first connect the BerryIMU to the Raspberry Pi as shown:
+
+Next, enter the following commands into the Raspberry Pi commandline to install the necessary components:
+
+    sudo apt-get update
+    sudo apt-get upgrade
+    conda upgrade conda
+    conda update conda
+    pip install --upgrade pip
+    sudo apt-get install git i2c-tools libi2c-dev
+    conda install -c conda-forge smbus2
+
+Try opening the blacklist file `/etc/modprobe.d/raspi-blacklist.conf`. If the file contains the line `blacklist i2c-bcm2708`, place a '#' in front to comment it out. If the file is empty or can't be opened then continue.
+
+Add the following lines into `/etc/modules`:
+
+    i2c-dev
+    i2c-bcm2708
+
+Add the following lines into `/boot/config.txt`:
+
+    dtparam=i2c_arm=on
+    dtparam=i2c1=on
+
+Reboot the RPi then enter in the commandline `sudo i2cdetect -y 1`. The following should be displayed:
+
+Next, run `` to clone the repository. Run the following commands to navigate to and run the IMU controller code. Always run IMU controller code before running Car RPi code. Press `Ctrl+C` to stop running IMU controller code.
+
+    cd Team5/gesture/
 
 ### Car RPi
 The only set up needed for the Car RPi is to connect to the internet by modifying the wpa_supplicant.conf file. Once connected, run 'ifconfig' to obtain the IP address under the WLAN0: inet. Then enter the settings to enable remote ssh. You will need to install paho-mqtt onto your virtual environment.
