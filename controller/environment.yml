@@ -1,0 +1,12 @@
+name: controller
+channels:
+  - conda-forge
+dependencies:
+  - opencv
+  - numpy
+  - pyqt
+  - paho-mqtt
+  - pip
+  - pip:
+    - pvporcupine
+    - pvrecorder
