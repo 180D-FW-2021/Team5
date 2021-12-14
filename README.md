@@ -7,7 +7,7 @@ Beep boop want to drive is a reincarnation of the classic game [Snake](https://e
 The game features a hardware, remote-controlled car, gesture recognition steering, speech recognition game controls, and an overhead camera that uses computer vision to track the game. A central laptop orchestrates the entire game, seamlessly blending the disjoint modules together.
 
 ## Setup
-The game is has 3 computers which all require different software running on them: the RPi with the IMU, the RPi on the car, and the controlling laptop. In total, you will need the following:
+The game has 3 computers which all require different software running on them: the RPi with the IMU, the RPi on the car, and the controlling laptop. In total, you will need the following:
 
 * Laptop (1)
 * External webcam or smartphone (1)
