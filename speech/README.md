@@ -10,7 +10,7 @@ Code adapted from porcupine_demo_mic.py, found in the above repo. Relevant parts
 To install on your system, use the command `sudo pip3 install pvporcupinedemo`.
 
 ## AccessKey
-You need to make an account on the [Picovoice Console](https://picovoice.ai/console/) first. After you log in, find your access key on the [top bar] (https://console.picovoice.ai/access_key). 
+You need to make an account on the [Picovoice Console](https://picovoice.ai/console/) first. After you log in, find your access key on the [top bar](https://console.picovoice.ai/access_key). 
 
 ## Setup demo
 The controller doesn't expose the demo code, but to run the demo file, porcupine_demo_mic.py:
