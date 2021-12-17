@@ -94,6 +94,7 @@ Since the `controller` environment contains many large packages that the car wil
 
     
 ### Controller Laptop
+* This laptop needs a microphone in order to process speech inputs.
 Clone the repository.
 
     git clone https://github.com/180D-FW-2021/Team5.git
