@@ -1,0 +1,14 @@
+.App {
+    text-align: center;
+
+}
+
+.Data {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 90px;
+  }
+
+.dataTable {
+    margin-left: 30px;
+}
