@@ -31,7 +31,11 @@ class Car:
 		self.left_turn_length = 0.5
 		self.right_turn_length = 0.5
 
-		self.start_Driving()
+		#initialize the PWM for enL and enR, but this causes the car to start driving
+		self.pwmL.start(self.speed)
+		self.pwmR.start(self.speed)
+		#so immediately stop driving
+		self.stop_Driving()
 
 	def stop_Driving(self):
 		#drive all inputs high to stop driving
@@ -39,12 +43,12 @@ class Car:
 		io.output(self.in2, True)
 		io.output(self.in3, True)
 		io.output(self.in4, True)
-		self.pwmL.stop()
-		self.pwmR.stop()
+		#self.pwmL.stop()
+		#self.pwmR.stop()
 
 	def start_Driving(self):
-		self.pwmL.start(self.speed)
-		self.pwmR.start(self.speed)
+		#self.pwmL.start(self.speed)
+		#self.pwmR.start(self.speed)
 		io.output(self.in1, True)
 		io.output(self.in2, False)
 		io.output(self.in3, True)
@@ -55,8 +59,8 @@ class Car:
 		self.pwmR.ChangeDutyCycle(self.speed)
 		self.pwmL.ChangeDutyCycle(self.speed)
 
-		#self.left_turn_length = 0.4
-		#self.right_turn_length = 0.5
+		#self.left_turn_length = -0.005*inputSpeed+0.8
+		#self.right_turn_length = -0.005*inputSpeed+0.8
 
 	def turn_Left(self):
 		if(self.is_stopped == True):
