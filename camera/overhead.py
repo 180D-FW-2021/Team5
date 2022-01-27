@@ -6,29 +6,10 @@ class Overhead(object):
         '''Initialize various member variables.'''
 
         # Colors for drawing
-        self.red = [0,255,255]
-        self.green = [60,255,255]
-        self.blue = [125,255,255]
-        self.purple = [150,255,255]
-
-        # Color bounds
-        # Must be numpy arrays for cv.inRange()
-        self.redBotLow = np.uint8([0,50,50])
-        self.redBotHigh = np.uint8([10,255,255])
-        self.redTopLow = np.uint8([170,50,50])
-        self.redTopHigh = np.uint8([180,255,255])
-        self.yellowLow = np.uint8([25,50,50])
-        self.yellowHigh = np.uint8([60,255,255])
-        self.blueLow = np.uint8([80,20,30])
-        self.blueHigh = np.uint8([125,255,255])
-
-        # Color bounds to use
-        self.carLow = (self.redBotLow, self.redTopLow)
-        self.carHigh = (self.redBotHigh, self.redTopHigh)
-        self.boundaryLow = self.blueLow
-        self.boundaryHigh = self.blueHigh
-        self.dotLow = self.yellowLow
-        self.dotHigh = self.yellowHigh
+        self.red = [0,0,255]
+        self.green = [0,255,0]
+        self.blue = [255,0,0]
+        self.purple = [255,0,255]
 
         # Other variables
         self.boundary = None # Boundary contour
@@ -87,8 +68,13 @@ class Overhead(object):
     def getFrame(self):
         '''Gets a frame from the camera, converts it to HSV, and stores it in
         self.frame.'''
-        _, frame = self.camera.read()
-        self.frame = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+        _, self.frame = self.camera.read()
+        self.pFrame = self.preprocess()
+
+    def preprocess(self):
+        '''Convert image to grayscale and apply a light blur to handle noise.'''
+        gray = cv.cvtColor(self.frame, cv.COLOR_BGR2GRAY)
+        return cv.GaussianBlur(gray, (5,5), 0)
 
     def findBoundary(self):
         '''Finds the largest blue object and assumes it is the boundary. Creates
@@ -109,32 +95,24 @@ class Overhead(object):
             self.boundary = outline
 
     def findDots(self):
-        '''Finds all green objects with contour area larger than self.threshold.
-        Stores their bounding circles in self.dots as ((x,y),radius).'''
-        maybeDots = cv.inRange(self.frame, self.dotLow, self.dotHigh)
-        # cv.imshow("maybe dots", maybeDots)
-        dotContours, _ = cv.findContours(maybeDots,
-                                        cv.RETR_LIST,
-                                        cv.CHAIN_APPROX_SIMPLE)
-        # print([cv.contourArea(c) for c in dotContours])
-        filteredContours = filter(lambda c: self.threshMax > cv.contourArea(c) > self.threshMin, dotContours)
+        '''Finds all white circles in the game area. Stores their bounding
+        circles in self.dots as ((x,y),radius).'''
+        _, whiteThings = cv.threshold(self.pFrame.copy(), 200, 255, cv.THRESH_BINARY)
+        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        filteredContours = [c for c in whiteContours if nCorners(c) > 4]
+        print([nCorners(c) for c in whiteContours])
         self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
         self.nDots = len(self.dots)
 
     def findCar(self):
         '''Find the largest red object in the camera's view, assuming it's the
         car. Return its contour.'''
-        # Because red is split between the very bottom and very top of HSV, we
-        # have to check two ranges
-        carBotObjects = cv.inRange(self.frame, self.carLow[0], self.carHigh[0])
-        carTopObjects = cv.inRange(self.frame, self.carLow[1], self.carHigh[1])
-        maybeCars = cv.bitwise_or(carBotObjects, carTopObjects)
-
-        carContours, _ = cv.findContours(maybeCars,
-                                        cv.RETR_LIST,
-                                        cv.CHAIN_APPROX_SIMPLE)
-        if carContours:
-            self.car = max(carContours, key=lambda c: cv.contourArea(c))
+        _, whiteThings = cv.threshold(self.pFrame.copy(), 200, 255, cv.THRESH_BINARY)
+        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        maybeCars = [c for c in whiteContours if nCorners(c) == 4]
+        if maybeCars:
+            # TODO: Handle multiple cars
+            self.car = maybeCars[0]
         else:
             self.car = None
 
@@ -149,17 +127,17 @@ class Overhead(object):
             targetCenter = tuple(int(x) for x in targetCenter)
             targetRadius = int(targetRadius)
             frame = cv.circle(frame, targetCenter, targetRadius + 5, self.purple, 2)
-        if dots and self.dots:
+        if dots and self.dots is not None:
             for center, radius in self.dots:
                 center = tuple(int(x) for x in center)
                 radius = int(radius)
-                frame = cv.circle(frame, center, radius, self.green, -1)
-        if car and self.car:
+                frame = cv.circle(frame, center, radius, self.green, 2)
+        if car and self.car is not None:
             frame = cv.drawContours(frame, [self.car], 0, self.red, 2)
-        if boundary and self.boundary:
+        if boundary and self.boundary is not None:
             frame = cv.drawContours(frame, [self.boundary], 0, self.blue, 5)
 
-        return cv.cvtColor(frame, cv.COLOR_HSV2BGR)
+        return frame
 
 # Utility functions
 
@@ -168,17 +146,31 @@ def inContour(cnt, point):
     within the contour.'''
     return cv.pointPolygonTest(cnt, point, False) >= 0
 
+def nCorners(cnt):
+    '''Creates an approximation of the given contour and returns the number of
+    corners.'''
+    perimeter = cv.arcLength(cnt, True)
+    approx = cv.approxPolyDP(cnt, 0.04 * perimeter, True)
+    return len(approx)
+
 if __name__ == "__main__":
     overhead = Overhead(1000, 3000)
-    overhead.setup()
+    # overhead.setup()
     while True:
-        inBoundary, gotTarget = overhead.loop(0)
-        if not inBoundary:
-            print("Car out of boundary")
-        if gotTarget:
-            print("Car got target")
-        frame = overhead.drawFrame(target=True, dots=True, car=True, boundary=True)
-        # Display new frame
+        # inBoundary, gotTarget = overhead.loop(0)
+        # if not inBoundary:
+        #     print("Car out of boundary")
+        # if gotTarget:
+        #     print("Car got target")
+        # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=False)
+        # # Display new frame
+        # cv.imshow("overhead", frame)
+
+        overhead.getFrame()
+        overhead.findDots()
+        overhead.findCar()
+        frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=False)
+        cv.imshow("pframe", overhead.pFrame)
         cv.imshow("overhead", frame)
 
         # Stop when ESC is pressed
