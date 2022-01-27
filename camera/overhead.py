@@ -21,6 +21,7 @@ class Overhead(object):
         self.threshMax = threshMax # Max area for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
         self.frame = None # Current frame being processed
+        self.pFrame = None # Preprocessed version of the current frame
 
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots. Assumes
