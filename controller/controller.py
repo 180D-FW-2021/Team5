@@ -40,6 +40,10 @@ class MainWindow(QMainWindow):
         # clock clock clock
         self.timer = QTimer(self)
 
+        #GUI
+        self.guiStart()
+
+    def guiStart(self):
         # GUI layout
         #init
         self.setGeometry(100, 100, 1000, 600)

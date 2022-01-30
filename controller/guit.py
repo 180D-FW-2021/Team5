@@ -81,8 +81,8 @@ class MainWindow(QMainWindow):
         self.redFlash(self.currentState)
 
     def redFlash(self,label):
-        self.timer.singleShot(6000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
-        self.timer.singleShot(2000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
+        self.timer.singleShot(5000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
+        self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
         print("flashed")
 
     def doNothing(self):
