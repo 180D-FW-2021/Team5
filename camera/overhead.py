@@ -48,7 +48,7 @@ class Overhead(object):
 
         self.getFrame()
         self.findCar()
-        if self.car:
+        if self.car is not None:
             M = cv.moments(self.car)
             carCentroid = (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
             inBoundary = inContour(self.boundary, carCentroid)
@@ -81,26 +81,18 @@ class Overhead(object):
         '''Finds the largest blue object and assumes it is the boundary. Creates
         an approximation of the contour to smooth any details, and stores the
         approximation in self.boundary.'''
-        maybeBoundary = cv.inRange(self.frame, self.boundaryLow, self.boundaryHigh)
-        # cv.imshow("maybe boundary", maybeBoundary)
-        boundaryContours, _ = cv.findContours(maybeBoundary,
-                                    cv.RETR_LIST,
-                                    cv.CHAIN_APPROX_NONE)
-        if boundaryContours:
-            # Take the largest contour and make an approximation of it to
-            # smooth the outline
-            # TODO: Change to find inner edge of boundary
-            boundary = max(boundaryContours, key=cv.contourArea)
-            epsilon = 0.01 * cv.arcLength(boundary, True)
-            outline = cv.approxPolyDP(boundary, epsilon, True)
-            self.boundary = outline
+        _, whiteThings = cv.threshold(self.pFrame.copy(), 150, 255, cv.THRESH_BINARY)
+        cv.imshow("white", whiteThings)
+        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        if whiteContours:
+            self.boundary = max(whiteContours, key=cv.contourArea)
 
     def findDots(self):
         '''Finds all white circles in the game area. Stores their bounding
         circles in self.dots as ((x,y),radius).'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        filteredContours = [c for c in blackContours if nCorners(c) > 4 and cv.contourArea(c) > 200]
+        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) > 4 and cv.contourArea(c) > 200]
         self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
         self.nDots = len(self.dots)
 
@@ -109,7 +101,7 @@ class Overhead(object):
         car. Return its contour.'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        maybeCars = [c for c in blackContours if nCorners(c) == 4 and cv.contourArea(c) > 200]
+        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and cv.contourArea(c) > 200]
         if maybeCars:
             # TODO: Handle multiple cars
             self.car = maybeCars[0]
@@ -141,6 +133,14 @@ class Overhead(object):
 
 # Utility functions
 
+def centroid(cnt):
+    '''Computes and returns the centroid point of a given contour.'''
+    M = cv.moments(cnt)
+    if M['m00']:
+        return (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
+    else:
+        return (0,0)
+
 def inContour(cnt, point):
     '''Takes a contour and a point (x,y) and returns true if that point is
     within the contour.'''
@@ -162,14 +162,16 @@ if __name__ == "__main__":
         #     print("Car out of boundary")
         # if gotTarget:
         #     print("Car got target")
-        # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=False)
+        # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
         # # Display new frame
         # cv.imshow("overhead", frame)
 
         overhead.getFrame()
+
+        overhead.findBoundary()
         overhead.findDots()
         overhead.findCar()
-        frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=False)
+        frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
         cv.imshow("pframe", overhead.pFrame)
         cv.imshow("overhead", frame)
 
