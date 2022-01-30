@@ -12,9 +12,9 @@ class SpeechWorker(QThread):
         self.active = True
 
         modelBasePath = "../speech/porcupine_models/"
-        modelFiles = [#"continue__en_windows_2021-12-01-utc_v1_9_0.ppn",
-                      #"game-pause__en_windows_2021-12-01-utc_v1_9_0.ppn",
-                      "activate-power__en_windows_2021-12-18-utc_v1_9_0.ppn"]
+        modelFiles = ["continue_en_windows_v2_0_0.ppn",
+                      "game-pause_en_windows_v2_0_0.ppn",
+                      "activate-power_en_windows_v2_0_0.ppn"]
         keywordPaths = [modelBasePath + f for f in modelFiles]
         self.getKeywords(keywordPaths)
 
@@ -24,9 +24,11 @@ class SpeechWorker(QThread):
             library_path=pvporcupine.LIBRARY_PATH,
             model_path=pvporcupine.MODEL_PATH,
             keyword_paths=keywordPaths,
-            sensitivities=self.sensitivities)
+            sensitivities=self.sensitivities,
+            access_key="OoBm7DUZ0/3C9mx28fclJIzBBRBWKiPftaZIDAVc0QiAH7QPBYVhCg==")
         self.recorder = PvRecorder(device_index=0,
             frame_length=self.porcupine.frame_length)
+        self.recorder.start()
 
         print('Listening {')
         for keyword, sensitivity in zip(self.keywords, self.sensitivities):
@@ -38,12 +40,15 @@ class SpeechWorker(QThread):
             result = self.porcupine.process(pcm)
             if result >= 0:
                 print("Detected %s" % self.keywords[result])
-                self.keywordDetected.emit(self.keywords[result])
+                self.keywordDetected.emit(self.keywords[result].strip())
 
     def stop(self):
         self.active = False
-        self.porcupine.delete()
-        self.recorder.delete()
+        if self.porcupine:
+            self.porcupine.delete()
+        if self.recorder:
+            self.recorder.delete()
+        self.quit()
 
     def getKeywords(self, keywordPaths):
         '''Given the list of keyword paths, adds a list of the keywords

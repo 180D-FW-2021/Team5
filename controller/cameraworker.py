@@ -1,7 +1,7 @@
 # Based on https://www.codepile.net/pile/ey9KAnxn
 
 from PyQt5.QtGui import QImage
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 import cv2 as cv
 from random import randint
 
@@ -19,7 +19,7 @@ class CameraWorker(QThread):
 
     def run(self):
         self.active = True
-        self.overhead = Overhead(200)
+        self.overhead = Overhead(1000, 2500)
         self.overhead.setup()
         target = self.newTarget(-1)
         while self.active:
@@ -29,23 +29,25 @@ class CameraWorker(QThread):
             if gotTarget:
                 target = self.newTarget(target)
                 self.dotCollected.emit()
-            self.newFrame.emit(self.overhead.drawFrame())
+            formattedFrame = self.formatFrame(self.overhead.drawFrame(boundary=True))
+            self.newFrame.emit(formattedFrame)
 
     def stop(self):
         self.active = False
-        self.overhead.stop()
+        if self.overhead:
+            self.overhead.stop()
         self.quit()
 
     def formatFrame(self, frame):
         '''Take an OpenCv frame in BGR and convert it to a format that's
         friendly to use with a PyQt PixMap.'''
         frame = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
-        frame = cv.flip(frame, 1)
-        qtFrame = QImage(frame.data, frame.shape[1], frame.shape[0], QImage.Format_RGB888)
+        self.frame = frame.copy() # Make a copy and keep a reference so GUI doesn't segfault later
+        qtFrame = QImage(self.frame.data, self.frame.shape[1], self.frame.shape[0], QImage.Format_RGB888)
         newFrame = qtFrame.scaled(640, 480, Qt.KeepAspectRatio)
         return newFrame
 
-    def newTarget(lastTarget):
+    def newTarget(self, lastTarget):
         '''Returns a new target dot index. Makes sure that the same dot is not
         chosen twice.'''
         target = randint(0, self.overhead.nDots - 1)
