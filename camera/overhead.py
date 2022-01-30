@@ -98,19 +98,18 @@ class Overhead(object):
     def findDots(self):
         '''Finds all white circles in the game area. Stores their bounding
         circles in self.dots as ((x,y),radius).'''
-        _, whiteThings = cv.threshold(self.pFrame.copy(), 200, 255, cv.THRESH_BINARY)
-        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        filteredContours = [c for c in whiteContours if nCorners(c) > 4]
-        print([nCorners(c) for c in whiteContours])
+        _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
+        blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        filteredContours = [c for c in blackContours if nCorners(c) > 4 and cv.contourArea(c) > 200]
         self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
         self.nDots = len(self.dots)
 
     def findCar(self):
         '''Find the largest red object in the camera's view, assuming it's the
         car. Return its contour.'''
-        _, whiteThings = cv.threshold(self.pFrame.copy(), 200, 255, cv.THRESH_BINARY)
-        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        maybeCars = [c for c in whiteContours if nCorners(c) == 4]
+        _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
+        blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        maybeCars = [c for c in blackContours if nCorners(c) == 4 and cv.contourArea(c) > 200]
         if maybeCars:
             # TODO: Handle multiple cars
             self.car = maybeCars[0]
