@@ -86,8 +86,8 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-client.connect_async('mqtt.eclipseprojects.io')
-
+#client.connect_async('mqtt.eclipseprojects.io')
+client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
@@ -96,6 +96,7 @@ try:
 		if(powerup_on == True and time.time() - time_powerup >= 3):
 			powerup_on = False
 			car.change_Speed(old_speed)
+			print('Powerup over')
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()

@@ -40,15 +40,10 @@ client.loop_start()
 
 # 5. use publish() to publish messages to the broker.
 # payload must be a string, bytearray, int, float or None.
-client.publish('ece180d/project/motorControls', 'L', qos=1)
-print('Telling car to turn Left')
+time.sleep(2)
+print('activate power')
+client.publish('ece180d/team5/game', 'start car', qos=1)
 time.sleep(4)
-print('Telling car to turn Right')
-client.publish('ece180d/project/motorControls', 'R', qos=1)
-time.sleep(4)
-client.publish('ece180d/project/motorControls', 'L', qos=1)
-time.sleep(4)
-print('Telling car to turn Left')
 #    else:
  #       client.publish('ece180d/project/motorControls', 'R', qos=1)
         
