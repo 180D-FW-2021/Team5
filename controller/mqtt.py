@@ -10,7 +10,7 @@ class Mqtt(object):
         self.client = mqtt.Client()
         self.client.on_connect = onConnect
         self.client.on_disconnect = onDisconnect
-        self.client.connect_async("mqtt.eclipseprojects.io")
+        self.client.connect_async("test.mosquitto.org")
         self.client.loop_start()
 
     def stop(self):

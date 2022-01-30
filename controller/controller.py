@@ -14,6 +14,9 @@ class GameState(Enum):
     RUNNING = 0
     PAUSED = 1
 
+class Signal(QObject):
+    started = pyqtSignal()
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -40,6 +43,10 @@ class MainWindow(QMainWindow):
         # clock clock clock
         self.timer = QTimer(self)
 
+        #GUI
+        self.guiStart()
+
+    def guiStart(self):
         # GUI layout
         #init
         self.setWindowTitle('please work')
@@ -51,9 +58,11 @@ class MainWindow(QMainWindow):
 
         # right side
         self.layout2 = QVBoxLayout()
+
         # Start button
         self.start = QPushButton("Arena Ready")
-        self.start.clicked.connect(self.startGame)
+        self.start_signal = Signal()
+        self.start_signal.started.connect(self.startGame)
         self.layout2.addWidget(self.start)
 
         self.currentState = QLabel("GAME STATE NOW: " + str(self.state.name), self)
@@ -68,6 +77,8 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.currentPower)
         self.layout2.addWidget(self.tooltip)
         self.layout1.addLayout(self.layout2)
+
+        self.start.clicked.connect(self.emit_start)
         
         widget = QWidget()
         widget.setLayout(self.layout1)
@@ -92,6 +103,10 @@ class MainWindow(QMainWindow):
         self.state = GameState.RUNNING
         self.updateGui()
 
+    @pyqtSlot()
+    def emit_start(self):
+        self.start_signal.started.emit()
+        
     @pyqtSlot(QImage)
     def newFrame(self, frame):
         self.videoLabel.setPixmap(QPixmap.fromImage(frame))
@@ -165,6 +180,7 @@ class MainWindow(QMainWindow):
         else:
             print("Unknown keyword detected: %s" % keyword)
 
+    @pyqtSlot(QLabel)
     def redFlash(self,label):
         self.timer.singleShot(5000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
         self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))

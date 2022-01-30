@@ -19,6 +19,9 @@ class Label(QWidget):
         super(Label, self).__init__()
         self.label = QLabel(text)
 
+class Signal(QObject):
+    started = pyqtSignal()
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -28,6 +31,7 @@ class MainWindow(QMainWindow):
         self.score = 0
         self.powerups = 0
         self.state = GameState.PAUSED
+        
 
         #random bullshit you need to do to init
 
@@ -44,10 +48,14 @@ class MainWindow(QMainWindow):
         self.layout1.addWidget(self.videoLabel)
 
         #start button
+        self.start_signal = Signal()
+        self.start_signal.started.connect(self.startGame)
+
         self.layout2 = QVBoxLayout()
         self.start = QPushButton("go pikachu i choose you")
-        self.start.clicked.connect(self.startGame)
+        
         self.layout2.addWidget(self.start)
+        self.timer = QTimer(self)
 
         #text and shit
         
@@ -64,14 +72,17 @@ class MainWindow(QMainWindow):
         self.layout2.addWidget(self.tooltip)
         self.layout1.addLayout(self.layout2)
         
+        self.start.clicked.connect(self.emit_start)
+
         widget = QWidget()
         widget.setLayout(self.layout1)
         self.setCentralWidget(widget)
 
-        self.timer = QTimer(self)
+        
         #i don't know why you need to do this
         #self.setLayout(self.layout)
 
+    @pyqtSlot()
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         print("starting now")
@@ -80,13 +91,15 @@ class MainWindow(QMainWindow):
         self.showLabels()
         self.redFlash(self.currentState)
 
+    @pyqtSlot(QLabel)
     def redFlash(self,label):
-        self.timer.singleShot(6000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
-        self.timer.singleShot(2000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
+        self.timer.singleShot(5000, lambda x=label: x.setStyleSheet("QLabel {background-color: none;}"))
+        self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
         print("flashed")
 
-    def doNothing(self):
-        pass
+    @pyqtSlot()
+    def emit_start(self):
+        self.start_signal.started.emit()
 
     def showMessage(self):
         self.l2.setText(self.message)
