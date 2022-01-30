@@ -1,5 +1,6 @@
 #ctc.py: controller test console"
 #send mqtt commands to test gui
+#FOR TEST ONLY - DEPRECATED
 
 import paho.mqtt.client as mqtt
 import numpy as np

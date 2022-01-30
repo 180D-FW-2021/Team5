@@ -1,5 +1,7 @@
 # Based on https://www.codepile.net/pile/ey9KAnxn
 # cts: controller test script
+# FOR TESTING ONLY - DEPRECATED
+
 from enum import Enum
 import sys
 from PyQt5.QtGui import *
