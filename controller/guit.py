@@ -22,6 +22,13 @@ class Label(QWidget):
 class Signal(QObject):
     started = pyqtSignal()
 
+class Label(QLabel):
+    def __init__(self, text):
+        super(Label, self).__init__()
+        self.setAlignment(Qt.AlignCenter)
+        self.setText(text)
+        self.resize(10,10)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -44,7 +51,7 @@ class MainWindow(QMainWindow):
         #camera
         self.camera = CameraWorker()
         self.camera.newFrame.connect(self.newFrame)
-        self.videoLabel = QLabel(self)
+        self.videoLabel = QLabel(self);         self.videoLabel.setStyleSheet("border: 1px solid black;")
         self.layout1.addWidget(self.videoLabel)
 
         #start button
@@ -59,11 +66,11 @@ class MainWindow(QMainWindow):
 
         #text and shit
         
-        self.currentState = QLabel("GAME STATE NOW: " + str(self.state), self)
-        self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
-        self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
-        self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
-        self.tooltip = QLabel("Say \"GAME PAUSE\" to pause", self)
+        self.currentState = Label("GAME STATE NOW: " + str(self.state))
+        self.currentScore = Label("YOUR SCORE ARE: " + str(self.score))
+        self.currentLives = Label("YOUR LIVES IS: " + str(self.lives))
+        self.currentPower = Label("YOUR POWERUPS IS: " + str(self.powerups))
+        self.tooltip = Label("Say \"GAME PAUSE\" to pause")
 
         self.layout2.addWidget(self.currentState)
         self.layout2.addWidget(self.currentScore)

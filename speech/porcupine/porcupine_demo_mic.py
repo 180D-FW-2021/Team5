@@ -11,12 +11,12 @@
 
 import argparse
 import os
+import struct
+import wave
 from datetime import datetime
 from threading import Thread
 
-import numpy as np
 import pvporcupine
-import soundfile
 from pvrecorder import PvRecorder
 
 
@@ -29,6 +29,7 @@ class PorcupineDemo(Thread):
 
     def __init__(
             self,
+            access_key,
             library_path,
             model_path,
             keyword_paths,
@@ -52,6 +53,7 @@ class PorcupineDemo(Thread):
 
         super(PorcupineDemo, self).__init__()
 
+        self._access_key = access_key
         self._library_path = library_path
         self._model_path = model_path
         self._keyword_paths = keyword_paths
@@ -59,8 +61,6 @@ class PorcupineDemo(Thread):
         self._input_device_index = input_device_index
 
         self._output_path = output_path
-        if self._output_path is not None:
-            self._recorded_frames = []
 
     def run(self):
         """
@@ -78,8 +78,10 @@ class PorcupineDemo(Thread):
 
         porcupine = None
         recorder = None
+        wav_file = None
         try:
             porcupine = pvporcupine.create(
+                access_key=self._access_key,
                 library_path=self._library_path,
                 model_path=self._model_path,
                 keyword_paths=self._keyword_paths,
@@ -87,6 +89,10 @@ class PorcupineDemo(Thread):
 
             recorder = PvRecorder(device_index=self._input_device_index, frame_length=porcupine.frame_length)
             recorder.start()
+
+            if self._output_path is not None:
+                wav_file = wave.open(self._output_path, "w")
+                wav_file.setparams((1, 2, 16000, 512, "NONE", "NONE"))
 
             print(f'Using device: {recorder.selected_device}')
 
@@ -98,13 +104,37 @@ class PorcupineDemo(Thread):
             while True:
                 pcm = recorder.read()
 
-                if self._output_path is not None:
-                    self._recorded_frames.append(pcm)
+                if wav_file is not None:
+                    wav_file.writeframes(struct.pack("h" * len(pcm), *pcm))
 
                 result = porcupine.process(pcm)
                 if result >= 0:
                     print('[%s] Detected %s' % (str(datetime.now()), keywords[result]))
-
+        except pvporcupine.PorcupineInvalidArgumentError as e:
+            print("One or more arguments provided to Porcupine is invalid: {\n" +
+                  f"\t{self._access_key=}\n" +
+                  f"\t{self._library_path=}\n" +
+                  f"\t{self._model_path=}\n" +
+                  f"\t{self._keyword_paths=}\n" +
+                  f"\t{self._sensitivities=}\n" +
+                  "}")
+            print(f"If all other arguments seem valid, ensure that '{self._access_key}' is a valid AccessKey")
+            raise e
+        except pvporcupine.PorcupineActivationError as e:
+            print("AccessKey activation error")
+            raise e
+        except pvporcupine.PorcupineActivationLimitError as e:
+            print(f"AccessKey '{self._access_key}' has reached it's temporary device limit")
+            raise e
+        except pvporcupine.PorcupineActivationRefusedError as e:
+            print(f"AccessKey '{self._access_key}' refused")
+            raise e
+        except pvporcupine.PorcupineActivationThrottledError as e:
+            print(f"AccessKey '{self._access_key}' has been throttled")
+            raise e
+        except pvporcupine.PorcupineError as e:
+            print(f"Failed to initialize Porcupine")
+            raise e
         except KeyboardInterrupt:
             print('Stopping ...')
         finally:
@@ -114,9 +144,8 @@ class PorcupineDemo(Thread):
             if recorder is not None:
                 recorder.delete()
 
-            if self._output_path is not None and len(self._recorded_frames) > 0:
-                recorded_audio = np.concatenate(self._recorded_frames, axis=0).astype(np.int16)
-                soundfile.write(self._output_path, recorded_audio, samplerate=porcupine.sample_rate, subtype='PCM_16')
+            if wav_file is not None:
+                wav_file.close()
 
     @classmethod
     def show_audio_devices(cls):
@@ -128,6 +157,9 @@ class PorcupineDemo(Thread):
 
 def main():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--access_key',
+                        help='AccessKey obtained from Picovoice Console (https://picovoice.ai/console/)')
 
     parser.add_argument(
         '--keywords',
@@ -168,6 +200,8 @@ def main():
     if args.show_audio_devices:
         PorcupineDemo.show_audio_devices()
     else:
+        if args.access_key is None:
+            raise ValueError("AccessKey (--access_key) is required")
         if args.keyword_paths is None:
             if args.keywords is None:
                 raise ValueError("Either `--keywords` or `--keyword_paths` must be set.")
@@ -183,6 +217,7 @@ def main():
             raise ValueError('Number of keywords does not match the number of sensitivities.')
 
         PorcupineDemo(
+            access_key=args.access_key,
             library_path=args.library_path,
             model_path=args.model_path,
             keyword_paths=keyword_paths,
