@@ -26,8 +26,9 @@ class SpeechWorker(QThread):
             keyword_paths=keywordPaths,
             sensitivities=self.sensitivities,
             access_key="OoBm7DUZ0/3C9mx28fclJIzBBRBWKiPftaZIDAVc0QiAH7QPBYVhCg==")
-        self.recorder = PvRecorder(device_index=0,
+        self.recorder = PvRecorder(device_index=2,
             frame_length=self.porcupine.frame_length)
+        print(f'Using device: {self.recorder.selected_device}')
         self.recorder.start()
 
         print('Listening {')

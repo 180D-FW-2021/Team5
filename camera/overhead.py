@@ -10,6 +10,8 @@ class Overhead(object):
         self.green = [0,255,0]
         self.blue = [255,0,0]
         self.purple = [255,0,255]
+        self.white = [255,255,255]
+        self.black = [0,0,0]
 
         # Other variables
         self.boundary = None # Boundary contour
@@ -22,6 +24,7 @@ class Overhead(object):
         self.camera = cv.VideoCapture(1) # DroidCam handle
         self.frame = None # Current frame being processed
         self.pFrame = None # Preprocessed version of the current frame
+        self.noCar = 0 # Number of frames without a car, for debouncing
 
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots. Assumes
@@ -56,8 +59,16 @@ class Overhead(object):
             # contour of the car
             gotTarget = inContour(self.car, self.dots[self.target][0])
         else:
-            # If we can't find a car, just send safe default values
-            inBoundary = False
+            # If we can't find a car, just send safe default values. To make
+            # sure we don't penalize the user for one frame where we drop the
+            # car, we debounce sending inBoundary = False so we need 20 frames
+            # no car in the boundary to declare it outside the boundary
+            self.noCar += 1
+            if self.noCar == 20:
+                self.noCar = 0
+                inBoundary = False
+            else:
+                inBoundary = True
             gotTarget = False
 
         return (inBoundary, gotTarget)
@@ -75,14 +86,22 @@ class Overhead(object):
     def preprocess(self):
         '''Convert image to grayscale and apply a light blur to handle noise.'''
         gray = cv.cvtColor(self.frame, cv.COLOR_BGR2GRAY)
-        return cv.GaussianBlur(gray, (5,5), 0)
+        blurred = cv.GaussianBlur(gray, (5,5), 0)
+        if self.boundary is not None:
+            # If we have a boundary, fill the rest of the image with white
+            # Inspired by https://stackoverflow.com/questions/37912928/fill-the-outside-of-contours-opencv
+            stencil = np.ones(blurred.shape).astype(blurred.dtype) * 255
+            stencil = cv.fillPoly(stencil, [self.boundary], 0)
+            return cv.bitwise_or(blurred, stencil)
+        else:
+            return blurred
 
     def findBoundary(self):
         '''Finds the largest blue object and assumes it is the boundary. Creates
         an approximation of the contour to smooth any details, and stores the
         approximation in self.boundary.'''
-        _, whiteThings = cv.threshold(self.pFrame.copy(), 150, 255, cv.THRESH_BINARY)
-        cv.imshow("white", whiteThings)
+        _, whiteThings = cv.threshold(self.pFrame.copy(), 135, 255, cv.THRESH_BINARY)
+        # cv.imshow("white things", whiteThings)
         whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         if whiteContours:
             self.boundary = max(whiteContours, key=cv.contourArea)
@@ -90,18 +109,19 @@ class Overhead(object):
     def findDots(self):
         '''Finds all white circles in the game area. Stores their bounding
         circles in self.dots as ((x,y),radius).'''
-        _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
+        _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
+        # cv.imshow("black", blackThings)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) > 4 and cv.contourArea(c) > 200]
+        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and cv.contourArea(c) > 100]
         self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
         self.nDots = len(self.dots)
 
     def findCar(self):
         '''Find the largest red object in the camera's view, assuming it's the
         car. Return its contour.'''
-        _, blackThings = cv.threshold(self.pFrame.copy(), 50, 255, cv.THRESH_BINARY_INV)
+        _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and cv.contourArea(c) > 200]
+        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) > 4 and cv.contourArea(c) > 200]
         if maybeCars:
             # TODO: Handle multiple cars
             self.car = maybeCars[0]
@@ -150,12 +170,13 @@ def nCorners(cnt):
     '''Creates an approximation of the given contour and returns the number of
     corners.'''
     perimeter = cv.arcLength(cnt, True)
-    approx = cv.approxPolyDP(cnt, 0.04 * perimeter, True)
+    approx = cv.approxPolyDP(cnt, 0.035 * perimeter, True)
     return len(approx)
 
 if __name__ == "__main__":
     overhead = Overhead(1000, 3000)
-    # overhead.setup()
+    overhead.setup()
+
     while True:
         # inBoundary, gotTarget = overhead.loop(0)
         # if not inBoundary:
@@ -168,12 +189,21 @@ if __name__ == "__main__":
 
         overhead.getFrame()
 
-        overhead.findBoundary()
         overhead.findDots()
         overhead.findCar()
         frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
         cv.imshow("pframe", overhead.pFrame)
         cv.imshow("overhead", frame)
+
+    # overhead.getFrame()
+    # overhead.findBoundary()
+    # frame = overhead.drawFrame(target=False, dots=False, car=False, boundary=True)
+    # cv.imshow("frame", overhead.frame)
+    # cv.imshow("pframe", overhead.pFrame)
+    # cv.imshow("overhead", frame)
+
+    # while True:
+    #     print("hello")
 
         # Stop when ESC is pressed
         k = cv.waitKey(5) & 0xFF

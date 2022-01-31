@@ -29,7 +29,7 @@ class CameraWorker(QThread):
             if gotTarget:
                 target = self.newTarget(target)
                 self.dotCollected.emit()
-            formattedFrame = self.formatFrame(self.overhead.drawFrame(boundary=True))
+            formattedFrame = self.formatFrame(self.overhead.drawFrame(car=True, boundary=True))
             self.newFrame.emit(formattedFrame)
 
     def stop(self):
