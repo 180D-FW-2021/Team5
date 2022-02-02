@@ -23,9 +23,10 @@ function secondsToMs(d) {
   var m = Math.floor(d % 3600 / 60);
   var s = Math.floor(d % 3600 % 60);
 
+  var hDisplay = h > 0 ? h + (h == 1 ? "h:" : "h:") : "";
   var mDisplay = m > 0 ? m + (m == 1 ? "m:" : "m:") : "";
   var sDisplay = s > 0 ? s + (s == 1 ? "s" : "s") : "";
-  return mDisplay + sDisplay; 
+  return hDisplay + mDisplay + sDisplay; 
 }
 
 function findAverages(data) {
@@ -149,7 +150,7 @@ function App() {
                       <td>{value.score}</td>
                       <td>{value.powerups_used}</td>
                       <td>{value.num_turns}</td>
-                      <td>{value.time_in_game.split(":")[1] + "m:" + value.time_in_game.split(":")[2] + "s"}</td>
+                      <td>{value.time_in_game.split(":")[0] + "h:" + value.time_in_game.split(":")[1] + "m:" + value.time_in_game.split(":")[2] + "s"}</td>
                       <td>{new Date(Date.parse(value.datetimestamp)).toLocaleString('en-US', {timeZone: 'UTC'}).split(', ')[0]}</td>
                       <td>{new Date(Date.parse(value.datetimestamp)).toLocaleString('en-US', {timeZone: 'UTC'}).split(', ')[1]}</td>
                     </tr>
@@ -163,7 +164,7 @@ function App() {
                       <td>{value.score}</td>
                       <td>{value.powerups_used}</td>
                       <td>{value.num_turns}</td>
-                      <td>{value.time_in_game.split(":")[1] + "m:" + value.time_in_game.split(":")[2] + "s"}</td>
+                      <td>{value.time_in_game.split(":")[0] + "h:" + value.time_in_game.split(":")[1] + "m:" + value.time_in_game.split(":")[2] + "s"}</td>
                       <td>{new Date(Date.parse(value.datetimestamp)).toLocaleString('en-US', {timeZone: 'UTC'}).split(', ')[0]}</td>
                       <td>{new Date(Date.parse(value.datetimestamp)).toLocaleString('en-US', {timeZone: 'UTC'}).split(', ')[1]}</td>
                     </tr>
