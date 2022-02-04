@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 class Overhead(object):
-    def __init__(self, threshMin, threshMax):
+    def __init__(self):
         '''Initialize various member variables.'''
 
         # Colors for drawing
@@ -19,8 +19,6 @@ class Overhead(object):
         self.nDots = -1 # Number of dots parsed in the arena
         self.car = None # Contour of the car
         self.target = -1 # Index of target dot in dots list
-        self.threshMin = threshMin # Min area for parsing dots
-        self.threshMax = threshMax # Max area for parsing dots
         self.camera = cv.VideoCapture(1) # DroidCam handle
         self.frame = None # Current frame being processed
         self.pFrame = None # Preprocessed version of the current frame
@@ -173,7 +171,7 @@ def nCorners(cnt):
     return len(approx)
 
 if __name__ == "__main__":
-    overhead = Overhead(1000, 3000)
+    overhead = Overhead()
     overhead.setup()
 
     while True:
