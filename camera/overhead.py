@@ -49,9 +49,7 @@ class Overhead(object):
         self.getFrame()
         self.findCar()
         if self.car is not None:
-            M = cv.moments(self.car)
-            carCentroid = (int(M['m10']/M['m00']),int(M['m01']/M['m00']))
-            inBoundary = inContour(self.boundary, carCentroid)
+            inBoundary = inContour(self.boundary, centroid(self.car))
             # Define "collecting a dot" as when the center of the dot is within the
             # contour of the car
             gotTarget = inContour(self.car, self.dots[self.target][0])
