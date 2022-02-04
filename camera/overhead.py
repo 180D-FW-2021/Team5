@@ -27,8 +27,7 @@ class Overhead(object):
         self.noCar = 0 # Number of frames without a car, for debouncing
 
     def setup(self):
-        '''Parses the game arena, capturing game boundary and dots. Assumes
-        boundary is blue and dots are green.'''
+        '''Parses the game arena, capturing game boundary and dots.'''
         # Keep taking frames until we've found a boundary and at least two dots
         while (self.boundary is None) or (len(self.dots) < 2):
             self.getFrame()
@@ -84,11 +83,13 @@ class Overhead(object):
         self.pFrame = self.preprocess()
 
     def preprocess(self):
-        '''Convert image to grayscale and apply a light blur to handle noise.'''
+        '''Convert image to grayscale and apply a light blur to handle noise. If
+        we have a boundary already, fill the area outside the boundary with
+        white. This helps with errors down the line, as we don't care about
+        data outside the boundary.'''
         gray = cv.cvtColor(self.frame, cv.COLOR_BGR2GRAY)
         blurred = cv.GaussianBlur(gray, (5,5), 0)
         if self.boundary is not None:
-            # If we have a boundary, fill the rest of the image with white
             # Inspired by https://stackoverflow.com/questions/37912928/fill-the-outside-of-contours-opencv
             stencil = np.ones(blurred.shape).astype(blurred.dtype) * 255
             stencil = cv.fillPoly(stencil, [self.boundary], 0)
@@ -97,9 +98,7 @@ class Overhead(object):
             return blurred
 
     def findBoundary(self):
-        '''Finds the largest blue object and assumes it is the boundary. Creates
-        an approximation of the contour to smooth any details, and stores the
-        approximation in self.boundary.'''
+        '''Finds the largest white thing and assumes it is the boundary.'''
         _, whiteThings = cv.threshold(self.pFrame.copy(), 135, 255, cv.THRESH_BINARY)
         # cv.imshow("white things", whiteThings)
         whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -107,7 +106,7 @@ class Overhead(object):
             self.boundary = max(whiteContours, key=cv.contourArea)
 
     def findDots(self):
-        '''Finds all white circles in the game area. Stores their bounding
+        '''Finds all black rectangles in the game area. Stores their bounding
         circles in self.dots as ((x,y),radius).'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
         # cv.imshow("black", blackThings)
@@ -117,8 +116,8 @@ class Overhead(object):
         self.nDots = len(self.dots)
 
     def findCar(self):
-        '''Find the largest red object in the camera's view, assuming it's the
-        car. Return its contour.'''
+        '''Find the first black non-rectangle, and assume it's the car. Return
+        its contour.'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) > 4 and cv.contourArea(c) > 200]
@@ -129,8 +128,8 @@ class Overhead(object):
             self.car = None
 
     def drawFrame(self, target=True, dots=True, car=False, boundary=False):
-        '''Draws the requested features onto the current frame, converting it
-        back to RGB and returning the modified frame.'''
+        '''Draws the requested features onto the current frame, returning the
+        modified frame.'''
         # Operate on a copy of the current frame so we don't modify the original
         frame = self.frame.copy()
         if target and self.target is not None:
