@@ -27,6 +27,7 @@ class Car:
 		self.is_stopped = True
 		self.game_over = False
 		self.speed = 20
+		self.turn_Speed = 40
 
 		self.left_turn_length = 0.5
 		self.right_turn_length = 0.5
@@ -68,6 +69,8 @@ class Car:
 		else:
 			#current time
 			start_time = time.time()
+			old_speed = self.speed
+			self.change_Speed(self.turn_Speed)
 			#run for 1 seconds
 			while(time.time() - start_time < self.left_turn_length):
 				#drive left motor backward
@@ -77,6 +80,7 @@ class Car:
 				io.output(self.in3, True)
 				io.output(self.in4, False)
 			#once while loop is over, return to driving straight
+			self.change_Speed(old_speed)
 			io.output(self.in1, True)
 			io.output(self.in2, False)
 			io.output(self.in3, True)
@@ -88,6 +92,8 @@ class Car:
 		else:
 			#current time
 			start_time = time.time()
+			old_speed = self.speed
+			self.change_Speed(self.turn_Speed)
 			#run for 1 second
 			while(time.time() - start_time < self.right_turn_length):
 				#drive left forward
@@ -97,6 +103,7 @@ class Car:
 				io.output(self.in3, False)
 				io.output(self.in4, True)
 			#once while loop is over, return to driving straight
+			self.change_Speed(old_speed)
 			io.output(self.in1, True)
 			io.output(self.in2, False)
 			io.output(self.in3, True)
