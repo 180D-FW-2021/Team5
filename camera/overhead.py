@@ -1,3 +1,4 @@
+from tkinter import Toplevel
 import cv2 as cv
 import numpy as np
 
@@ -94,12 +95,16 @@ class Overhead(object):
             return blurred
 
     def findBoundary(self):
-        '''Finds the largest white thing and assumes it is the boundary.'''
-        _, whiteThings = cv.threshold(self.pFrame.copy(), 135, 255, cv.THRESH_BINARY)
-        # cv.imshow("white things", whiteThings)
-        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        if whiteContours:
-            self.boundary = max(whiteContours, key=cv.contourArea)
+        '''Finds the interior contour of the largest black thing and assumes
+        it's the boundary.'''
+        _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
+        cv.imshow("black", blackThings)
+        blackContours, hierarchy = cv.findContours(blackThings, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        if blackContours:
+            outerBoundaryIdx = largestTopLevel(blackContours, hierarchy)
+            innerBoundaryIdx = hierarchy[0][outerBoundaryIdx][2]
+            if innerBoundaryIdx >= 0:
+                self.boundary = contours[innerBoundaryIdx]
 
     def findDots(self):
         '''Finds all black rectangles in the game area. Stores their bounding
@@ -168,27 +173,40 @@ def nCorners(cnt):
     approx = cv.approxPolyDP(cnt, 0.035 * perimeter, True)
     return len(approx)
 
+def largestTopLevel(cnts, hierarchy):
+    '''Returns the index of the top-level contour with the greatest area.'''
+    print(hierarchy.shape)
+    topLevels = [i for i,h in enumerate(hierarchy[0]) if h[3] < 0]
+    biggest = -1
+    biggestArea = 0
+    for i in topLevels:
+        area = cv.contourArea(cnts[i])
+        if area > biggestArea:
+            biggestArea = area
+            biggest = i
+    return biggest
+
 if __name__ == "__main__":
     overhead = Overhead()
-    overhead.setup()
+    # overhead.setup()
 
-    while True:
-        # inBoundary, gotTarget = overhead.loop(0)
-        # if not inBoundary:
-        #     print("Car out of boundary")
-        # if gotTarget:
-        #     print("Car got target")
-        # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
-        # # Display new frame
-        # cv.imshow("overhead", frame)
+    # while True:
+    #     # inBoundary, gotTarget = overhead.loop(0)
+    #     # if not inBoundary:
+    #     #     print("Car out of boundary")
+    #     # if gotTarget:
+    #     #     print("Car got target")
+    #     # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
+    #     # # Display new frame
+    #     # cv.imshow("overhead", frame)
 
-        overhead.getFrame()
+    #     overhead.getFrame()
 
-        overhead.findDots()
-        overhead.findCar()
-        frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
-        cv.imshow("pframe", overhead.pFrame)
-        cv.imshow("overhead", frame)
+    #     overhead.findDots()
+    #     overhead.findCar()
+    #     frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
+    #     cv.imshow("pframe", overhead.pFrame)
+    #     cv.imshow("overhead", frame)
 
     # overhead.getFrame()
     # overhead.findBoundary()
@@ -197,8 +215,14 @@ if __name__ == "__main__":
     # cv.imshow("pframe", overhead.pFrame)
     # cv.imshow("overhead", frame)
 
-    # while True:
-    #     print("hello")
+    while True:
+        overhead.getFrame()
+        contours, hierarchy = overhead.findBoundary()
+
+        if contours is not None and hierarchy is not None:
+            maybe = largestTopLevel(contours, hierarchy)
+            frame = cv.drawContours(overhead.frame.copy(), contours, maybe, overhead.blue, 2, hierarchy=hierarchy, maxLevel=1)
+            cv.imshow("frame", frame)
 
         # Stop when ESC is pressed
         k = cv.waitKey(5) & 0xFF
