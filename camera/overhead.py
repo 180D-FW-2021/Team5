@@ -28,15 +28,15 @@ class Overhead(object):
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots.'''
         # Keep taking frames until we've found a boundary and at least two dots
-        while (self.boundary is None) or (len(self.dots) < 2):
+        while self.boundary is None:
             self.getFrame()
             if (self.frame is not None) and (self.frame.any()):
                 self.findBoundary()
-                self.findDots()
 
-                # k = cv.waitKey(5) & 0xFF
-                # if k == 27:
-                #     break
+        while self.dots is None or len(self.dots) < 2:
+            self.getFrame()
+            if (self.frame is not None) and (self.frame.any()):
+                self.findDots()
 
     def loop(self, target):
         '''Main function to be called each game loop. Takes in the index of
@@ -98,13 +98,13 @@ class Overhead(object):
         '''Finds the interior contour of the largest black thing and assumes
         it's the boundary.'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
-        cv.imshow("black", blackThings)
+        # cv.imshow("black", blackThings)
         blackContours, hierarchy = cv.findContours(blackThings, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         if blackContours:
             outerBoundaryIdx = largestTopLevel(blackContours, hierarchy)
             innerBoundaryIdx = hierarchy[0][outerBoundaryIdx][2]
             if innerBoundaryIdx >= 0:
-                self.boundary = contours[innerBoundaryIdx]
+                self.boundary = blackContours[innerBoundaryIdx]
 
     def findDots(self):
         '''Finds all black rectangles in the game area. Stores their bounding
@@ -188,25 +188,25 @@ def largestTopLevel(cnts, hierarchy):
 
 if __name__ == "__main__":
     overhead = Overhead()
-    # overhead.setup()
+    overhead.setup()
 
-    # while True:
-    #     # inBoundary, gotTarget = overhead.loop(0)
-    #     # if not inBoundary:
-    #     #     print("Car out of boundary")
-    #     # if gotTarget:
-    #     #     print("Car got target")
-    #     # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
-    #     # # Display new frame
-    #     # cv.imshow("overhead", frame)
+    while True:
+        inBoundary, gotTarget = overhead.loop(0)
+        if not inBoundary:
+            print("Car out of boundary")
+        if gotTarget:
+            print("Car got target")
+        frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
+        # Display new frame
+        cv.imshow("overhead", frame)
 
-    #     overhead.getFrame()
+        # overhead.getFrame()
 
-    #     overhead.findDots()
-    #     overhead.findCar()
-    #     frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
-    #     cv.imshow("pframe", overhead.pFrame)
-    #     cv.imshow("overhead", frame)
+        # overhead.findDots()
+        # overhead.findCar()
+        # frame = overhead.drawFrame(target=False, dots=True, car=True, boundary=True)
+        # cv.imshow("pframe", overhead.pFrame)
+        # cv.imshow("overhead", frame)
 
     # overhead.getFrame()
     # overhead.findBoundary()
@@ -215,14 +215,14 @@ if __name__ == "__main__":
     # cv.imshow("pframe", overhead.pFrame)
     # cv.imshow("overhead", frame)
 
-    while True:
-        overhead.getFrame()
-        contours, hierarchy = overhead.findBoundary()
+    # while True:
+    #     overhead.getFrame()
+    #     contours, hierarchy = overhead.findBoundary()
 
-        if contours is not None and hierarchy is not None:
-            maybe = largestTopLevel(contours, hierarchy)
-            frame = cv.drawContours(overhead.frame.copy(), contours, maybe, overhead.blue, 2, hierarchy=hierarchy, maxLevel=1)
-            cv.imshow("frame", frame)
+    #     if contours is not None and hierarchy is not None:
+    #         maybe = largestTopLevel(contours, hierarchy)
+    #         frame = cv.drawContours(overhead.frame.copy(), contours, maybe, overhead.blue, 2, hierarchy=hierarchy, maxLevel=1)
+    #         cv.imshow("frame", frame)
 
         # Stop when ESC is pressed
         k = cv.waitKey(5) & 0xFF
