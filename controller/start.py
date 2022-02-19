@@ -1,23 +1,57 @@
 import argparse
+from contextlib import contextmanager
+import os
+
+import cv2 as cv
+from pvrecorder import PvRecorder
 from PyQt5.QtMultimedia import QCameraInfo
 
 from controller import run
-from pvrecorder import PvRecorder
+
+@contextmanager
+def suppressStderr():
+    '''Context manager to suppress stderr, silencing harmless openCV warnings.
+    Based on https://stackoverflow.com/questions/11130156/suppress-stdout-stderr-print-from-python-functions'''
+    try:
+        # Get a devnull fd and save the real stderr fd
+        nullFd = os.open(os.devnull, os.O_RDWR)
+        errFd = os.dup(2)
+        # Replace stderr with devnull
+        os.dup2(nullFd, 2)
+        yield
+    finally:
+        # Restore stderr
+        os.dup2(errFd, 2)
+        # Close extra fds
+        for fd in (nullFd, errFd):
+            os.close(fd)
 
 def showDevices():
     '''Prints out camera and microphone handle indices and names.'''
 
     # Print cameras and their indices
-    print('Cameras:')
+    print('Camera names:')
     cameras = QCameraInfo.availableCameras()
-    for i,camera in enumerate(cameras):
-        print(f'{i}. {camera.description()}')
+    cameras = [c.description() for c in cameras]
+    print(', '.join(cameras))
+
+    with suppressStderr():
+        validIndices = []
+        for i in range(10):
+            cam = cv.VideoCapture(i)
+            if cam.isOpened():
+                validIndices.append(str(i))
+            cam.release()
+    print('Camera indices:')
+    print(', '.join(validIndices))
+    print('The camera names ARE NOT ordered by index! You will have to try a few indices to find the right one.')
 
     # Print microphones and their indices
     print('\nMicrophones:')
     mics = PvRecorder.get_audio_devices()
     for i,mic in enumerate(mics):
-        print(f'{i}. {mic}')
+        print(f'{i} {mic}')
+    print('These indices ARE correctly matched up.')
 
 def parseArgs():
     parser = argparse.ArgumentParser()
@@ -40,6 +74,14 @@ def main():
         exit(1)
     else:
         run()
+        # cam = cv.VideoCapture(args.camera)
+        # while True:
+        #     _, frame = cam.read()
+        #     cv.imshow('cam', frame)
+
+        #     k = cv.waitKey(5) & 0xFF
+        #     if k == 27:
+        #         break
 
 if __name__ == '__main__':
     main()
