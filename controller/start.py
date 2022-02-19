@@ -57,6 +57,8 @@ def parseArgs():
     parser = argparse.ArgumentParser()
     parser.add_argument('--show-devices', action='store_true', dest='devices',
         help='Show all connected cameras and microphones and exit.')
+    parser.add_argument('--test-camera', action='store_true', dest='test',
+        help='Show the video from the current camera index. Must be used with --camera.')
     parser.add_argument('-c', '--camera', default=-1, type=int, metavar='INDEX',
         help='Index of camera handle to use.')
     parser.add_argument('-m', '--microphone', default=-1, type=int, metavar='INDEX',
@@ -68,20 +70,26 @@ def main():
 
     if args.devices:
         showDevices()
-        exit(0)
-    elif args.camera == -1 or args.microphone == -1:
-        print('If not using --show-devices, must give values for --camera and --microphone.')
+    elif args.test:
+        if args.camera < 0:
+            print('--test-camera must be used with a valid value for --camera.')
+            exit(1)
+        cam = cv.VideoCapture(args.camera)
+        print('Press ESC to exit.')
+        while True:
+            _, frame = cam.read()
+            cv.imshow(f'Index {args.camera}', frame)
+
+            k = cv.waitKey(5) & 0xFF
+            if k == 27:
+                break
+        with suppressStderr():
+            cam.release()       
+    elif args.camera < 0 or args.microphone < 0:
+        print('If starting the game, must give values for both --camera and --microphone.')
         exit(1)
     else:
         run()
-        # cam = cv.VideoCapture(args.camera)
-        # while True:
-        #     _, frame = cam.read()
-        #     cv.imshow('cam', frame)
-
-        #     k = cv.waitKey(5) & 0xFF
-        #     if k == 27:
-        #         break
 
 if __name__ == '__main__':
     main()
