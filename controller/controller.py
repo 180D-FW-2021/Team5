@@ -191,8 +191,12 @@ class MainWindow(QMainWindow):
         self.currentLives.setText("YOUR LIVES IS: " + str(self.lives))
         self.currentPower.setText("YOUR POWERUPS IS: " + str(self.powerups))
 
-if __name__ == "__main__":
+def run():
+    '''Starts the GUI begins the game.'''
     app = QApplication(sys.argv)
     root = MainWindow()
     root.show()
     sys.exit(app.exec())
+
+if __name__ == "__main__":
+    run()
