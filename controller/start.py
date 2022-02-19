@@ -89,7 +89,7 @@ def main():
         print('If starting the game, must give values for both --camera and --microphone.')
         exit(1)
     else:
-        run()
+        run(args.camera, args.microphone)
 
 if __name__ == '__main__':
     main()

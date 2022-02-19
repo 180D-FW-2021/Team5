@@ -17,9 +17,14 @@ class CameraWorker(QThread):
     carOutside = pyqtSignal() # Signal for car leaving boundary
     dotCollected = pyqtSignal() # Signal for car picking up the target dot
 
+    def __init__(self, index):
+        super.__init__()
+        # Store camera device index on construction
+        self.index = index
+
     def run(self):
         self.active = True
-        self.overhead = Overhead()
+        self.overhead = Overhead(self.index)
         self.overhead.setup()
         target = self.newTarget(-1)
         while self.active:
