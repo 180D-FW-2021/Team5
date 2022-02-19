@@ -3,6 +3,7 @@ import numpy as np
 import pvporcupine
 from pvrecorder import PvRecorder
 import os
+import platform
 
 class SpeechWorker(QThread):
     '''Thread to handle speech recognition.'''
@@ -12,9 +13,18 @@ class SpeechWorker(QThread):
         self.active = True
 
         modelBasePath = "../speech/porcupine_models/"
-        modelFiles = ["Continue_en_mac_v2_1_0.ppn",
-                      "Game-Pause_en_mac_v2_1_0.ppn",
-                      "Activate-Power_en_mac_v2_1_0.ppn"]
+        
+        # Load platform-specific models
+        if platform.system() == "Windows":
+            modelFiles = ["continue_en_windows_v2_1_0.ppn",
+                      "game-pause_en_windows_v2_1_0.ppn",
+                      "activate-power_en_windows_v2_1_0.ppn"]
+        elif platform.system() == "Darwin":
+            modelFiles = ["Continue_en_mac_v2_1_0.ppn",
+                        "Game-Pause_en_mac_v2_1_0.ppn",
+                        "Activate-Power_en_mac_v2_1_0.ppn"]
+        else:
+            raise RuntimeError("Running on unsupported platform. Currently only Windows and MacOS are supported.")
         keywordPaths = [modelBasePath + f for f in modelFiles]
         self.getKeywords(keywordPaths)
 
