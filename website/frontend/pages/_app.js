@@ -136,7 +136,7 @@ function App() {
               <th>Name</th>
               <th>Score</th>
               <th>Powerups</th>
-              <th>Turns</th>
+              <th>Num. Turns</th>
               <th>Survived</th>
               <th>Date</th> 
               <th>Time</th>
