@@ -97,9 +97,14 @@ class MainWindow(QMainWindow):
     def startGame(self):
         '''To be called only when starting game from a clean slate.'''
         print("Starting game")
-        self.camera.start()
-        self.speech.start()
+        if not self.camera.active:
+            self.camera.start()
+        if not self.speech.active:
+            self.speech.start()
         self.mqtt.startGame()
+        self.lives = 3
+        self.score = 0
+        self.powerups = 3
         self.state = GameState.RUNNING
         self.updateGui()
 

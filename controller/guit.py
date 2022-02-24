@@ -14,11 +14,6 @@ class GameState(Enum):
     GAME_OVER_BITCH = 2
     #SUPER_FUCKING_FAST = 2
 
-class Label(QWidget):
-    def __init__(self, text=""):
-        super(Label, self).__init__()
-        self.label = QLabel(text)
-
 class Signal(QObject):
     started = pyqtSignal()
 
@@ -39,7 +34,6 @@ class MainWindow(QMainWindow):
         self.powerups = 0
         self.state = GameState.PAUSED
         
-
         #random bullshit you need to do to init
 
         self.setGeometry(100, 100, 1000, 600)
