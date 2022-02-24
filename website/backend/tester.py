@@ -2,19 +2,18 @@ import requests
 import time
 import datetime
 
+#grab time in game
 tstart = time.time()
 time.sleep(5)
 tnow = time.time()
+
+#format into acceptable string
 timestamp = datetime.datetime.fromtimestamp(tnow).strftime('%Y-%m-%d %H:%M:%S')
 time_ig = datetime.datetime.fromtimestamp(int(tnow-tstart)).strftime('00:%M:%S')
 
-testing = True
+url = 'https://beepboopw2d.herokuapp.com/api/insert'
 
-if(testing):
-    url = 'http://localhost:3001/api/insert'
-else:
-    url = 'https://beepboopw2d.herokuapp.com/api/insert'
-
+#create json w data
 testdata = {
     "username": "test57",
     "score": 23,
