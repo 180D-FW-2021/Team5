@@ -25,7 +25,6 @@ class Car:
 		self.pwmR = io.PWM(self.enR, 100)
 
 		self.is_stopped = True
-		self.game_over = False
 		self.speed = 20
 		self.turn_Speed = 40
 
@@ -39,12 +38,7 @@ class Car:
 		self.stop_Driving()
 
 	def reset(self):
-		#set up pwm's at 100 Hz
-		self.pwmL = io.PWM(self.enL, 100)
-		self.pwmR = io.PWM(self.enR, 100)
-
 		self.is_stopped = True
-		self.game_over = False
 		self.speed = 20
 
 		self.left_turn_length = 0.5
