@@ -1,4 +1,3 @@
-from tkinter import Toplevel
 import cv2 as cv
 import numpy as np
 
