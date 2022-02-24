@@ -176,7 +176,6 @@ def nCorners(cnt, strict=False):
 
 def largestTopLevel(cnts, hierarchy):
     '''Returns the index of the top-level contour with the greatest area.'''
-    print(hierarchy.shape)
     topLevels = [i for i,h in enumerate(hierarchy[0]) if h[3] < 0]
     biggest = -1
     biggestArea = 0
