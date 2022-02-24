@@ -57,10 +57,10 @@ class Overhead(object):
         else:
             # If we can't find a car, just send safe default values. To make
             # sure we don't penalize the user for one frame where we drop the
-            # car, we debounce sending inBoundary = False so we need 20 frames
+            # car, we debounce sending inBoundary = False so we need 10 frames
             # no car in the boundary to declare it outside the boundary
             self.noCar += 1
-            if self.noCar == 20:
+            if self.noCar == 10:
                 self.noCar = 0
                 inBoundary = False
             else:
@@ -121,10 +121,10 @@ class Overhead(object):
         its contour.'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) > 4 and cv.contourArea(c) > 200]
+        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c, True) > 4 and cv.contourArea(c) > 200]
         if maybeCars:
             # TODO: Handle multiple cars
-            self.car = maybeCars[0]
+            self.car = max(maybeCars, key=cv.contourArea)
         else:
             self.car = None
 
@@ -166,11 +166,12 @@ def inContour(cnt, point):
     within the contour.'''
     return cv.pointPolygonTest(cnt, point, False) >= 0
 
-def nCorners(cnt):
+def nCorners(cnt, strict=False):
     '''Creates an approximation of the given contour and returns the number of
     corners.'''
     perimeter = cv.arcLength(cnt, True)
-    approx = cv.approxPolyDP(cnt, 0.035 * perimeter, True)
+    epsilon = 0.025 if strict else 0.035
+    approx = cv.approxPolyDP(cnt, epsilon * perimeter, True)
     return len(approx)
 
 def largestTopLevel(cnts, hierarchy):
