@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
     def guiStart(self):
         # GUI layout
         #init
-        self.setWindowTitle('please work')
+        self.setWindowTitle('Beep boop want to drive')
         self.layout1 = QHBoxLayout()
 
         #video box / left side
@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
         self.layout2 = QVBoxLayout()
 
         # Start button
-        self.start = QPushButton("Arena Ready")
+        self.start = QPushButton("Start Game")
         self.start_signal = Signal()
         self.start_signal.started.connect(self.startGame)
         self.layout2.addWidget(self.start)
@@ -69,7 +69,7 @@ class MainWindow(QMainWindow):
         self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
         self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
         self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
-        self.tooltip = QLabel("Say \"GAME PAUSE\" to pause", self)
+        self.tooltip = QLabel("Click \"Start Game\" to start.", self)
 
         self.layout2.addWidget(self.currentState)
         self.layout2.addWidget(self.currentScore)
@@ -140,6 +140,8 @@ class MainWindow(QMainWindow):
             self.score += 1
             if self.score % 5 == 0:
                 self.powerups += 1
+                self.tooltip.setText("New powerup obtained!")
+                self.redFlash(self.powerups)
             # TODO: Update score on GUI // no change needed
             self.mqtt.speedUp()
             self.updateGui()
@@ -193,10 +195,10 @@ class MainWindow(QMainWindow):
         self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
 
     def updateGui(self):
-        self.currentState.setText("GAME STATE NOW: " + str(self.state.name))
-        self.currentScore.setText("YOUR SCORE ARE: " + str(self.score))
-        self.currentLives.setText("YOUR LIVES IS: " + str(self.lives))
-        self.currentPower.setText("YOUR POWERUPS IS: " + str(self.powerups))
+        self.currentState.setText("Game State: " + str(self.state.name))
+        self.currentScore.setText("Score: " + str(self.score))
+        self.currentLives.setText("Lives: " + str(self.lives))
+        self.currentPower.setText("Powerups: " + str(self.powerups))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
