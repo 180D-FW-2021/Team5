@@ -138,6 +138,8 @@ class MainWindow(QMainWindow):
         if self.state != GameState.PAUSED:
             print("Car collected dot")
             self.score += 1
+            if self.score % 5 == 0:
+                self.powerups += 1
             # TODO: Update score on GUI // no change needed
             self.mqtt.speedUp()
             self.updateGui()
