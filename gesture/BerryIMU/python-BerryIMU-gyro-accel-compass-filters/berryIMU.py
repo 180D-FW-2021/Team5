@@ -218,7 +218,9 @@ client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 mqttString = 'ece180d/team5/motorControls'
+readyString = 'ece180d/team5/imuReady'
 turnChar = 'S'
+readyChar = 'R'
 
 client.publish(mqttString, turnChar, qos=1)
 
@@ -432,6 +434,9 @@ while True:
     print(outputString)
 
     ############################# MQTT PUBLISH ########################
+
+    # hearbeat
+    client.publish(readyString, readyChar, qos=1)
 
     if AccXangle < -40 and turnChar != 'L':
         turnChar = 'L'
