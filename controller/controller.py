@@ -18,7 +18,7 @@ class Signal(QObject):
     started = pyqtSignal()
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, cam, mic):
         super(MainWindow, self).__init__()
 
         # Game logic variables
@@ -28,13 +28,13 @@ class MainWindow(QMainWindow):
         self.state = GameState.PAUSED
 
         # Set up overhead camera thread, but wait for user input to start it
-        self.camera = CameraWorker()
+        self.camera = CameraWorker(cam)
         self.camera.newFrame.connect(self.newFrame)
         self.camera.carOutside.connect(self.carOutside)
         self.camera.dotCollected.connect(self.dotCollected)
 
         # Set up speech recognition, but wait for user input to start it
-        self.speech = SpeechWorker()
+        self.speech = SpeechWorker(mic)
         self.speech.keywordDetected.connect(self.keywordDetected)
         
         # Start MQTT connection
@@ -191,8 +191,12 @@ class MainWindow(QMainWindow):
         self.currentLives.setText("YOUR LIVES IS: " + str(self.lives))
         self.currentPower.setText("YOUR POWERUPS IS: " + str(self.powerups))
 
-if __name__ == "__main__":
+def run(cam=0, mic=0):
+    '''Starts the GUI and begins the game.'''
     app = QApplication(sys.argv)
-    root = MainWindow()
+    root = MainWindow(cam, mic)
     root.show()
     sys.exit(app.exec())
+
+if __name__ == "__main__":
+    run()

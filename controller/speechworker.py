@@ -9,11 +9,16 @@ class SpeechWorker(QThread):
     '''Thread to handle speech recognition.'''
     keywordDetected = pyqtSignal(str)
 
+    def __init__(self, index):
+        super.__init__()
+        # Store microphone device index on construction
+        self.index = index
+
     def run(self):
         self.active = True
 
         modelBasePath = "../speech/porcupine_models/"
-        
+
         # Load platform-specific models
         if platform.system() == "Windows":
             modelFiles = ["continue_en_windows_v2_1_0.ppn",
@@ -36,7 +41,7 @@ class SpeechWorker(QThread):
             keyword_paths=keywordPaths,
             sensitivities=self.sensitivities,
             access_key="OoBm7DUZ0/3C9mx28fclJIzBBRBWKiPftaZIDAVc0QiAH7QPBYVhCg==")
-        self.recorder = PvRecorder(device_index=2,
+        self.recorder = PvRecorder(device_index=self.index,
             frame_length=self.porcupine.frame_length)
         print(f'Using device: {self.recorder.selected_device}')
         self.recorder.start()

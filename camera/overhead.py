@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 class Overhead(object):
-    def __init__(self):
+    def __init__(self, index):
         '''Initialize various member variables.'''
 
         # Colors for drawing
@@ -19,7 +19,7 @@ class Overhead(object):
         self.nDots = -1 # Number of dots parsed in the arena
         self.car = None # Contour of the car
         self.target = -1 # Index of target dot in dots list
-        self.camera = cv.VideoCapture(1) # DroidCam handle
+        self.camera = cv.VideoCapture(index) # Camera handle
         self.frame = None # Current frame being processed
         self.pFrame = None # Preprocessed version of the current frame
         self.noCar = 0 # Number of frames without a car, for debouncing
@@ -186,7 +186,7 @@ def largestTopLevel(cnts, hierarchy):
     return biggest
 
 if __name__ == "__main__":
-    overhead = Overhead()
+    overhead = Overhead(1)
     overhead.setup()
 
     while True:
