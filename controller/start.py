@@ -1,12 +1,14 @@
 import argparse
 from contextlib import contextmanager
 import os
+import time
 
 import cv2 as cv
 from pvrecorder import PvRecorder
 from PyQt5.QtMultimedia import QCameraInfo
 
 from controller import run
+from mqtt import HeartbeatMqtt
 
 @contextmanager
 def suppressStderr():
@@ -89,6 +91,24 @@ def main():
         print('If starting the game, must give values for both --camera and --microphone.')
         exit(1)
     else:
+        heart = HeartbeatMqtt()
+        last = 0
+        n = 1
+        while not heart.imu and not heart.car:
+            if not heart.imu and not heart.car:
+                devices = 'IMU and car'
+            elif not heart.imu:
+                devices = 'IMU'
+            elif not heart.car:
+                devices = 'car'
+
+            # Send heartbeat and update display every half second
+            if time.time() - last > 0.5:
+                heart.sendHeartbeat()
+                last = time.time()
+                n = 1 if n == 3 else n + 1
+                print('Waiting for ' + devices + '.'*n + ' '*(3-n), end='\r')
+            
         run(args.camera, args.microphone)
 
 if __name__ == '__main__':

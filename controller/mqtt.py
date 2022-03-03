@@ -82,3 +82,7 @@ class HeartbeatMqtt(Mqtt):
             self.imu = True
         elif str(message.topic) == self.carTopic and payload == "R":
             self.car = True
+
+    def sendHeartbeat(self):
+        for topic in (self.imuTopic, self.carTopic):
+            self.client.publish(topic, "?", qos=1)
