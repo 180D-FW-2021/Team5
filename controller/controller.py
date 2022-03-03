@@ -174,6 +174,7 @@ class MainWindow(QMainWindow):
                 self.redFlash(self.tooltip)
                 #TODO: Add username input
                 powerups_used = 3 + (self.score // 5) - self.powerups
+                username = self.gameOver()
                 website.publish(username, self.score, powerups_used, self.time_start)
                 self.updateGui()
             else:
@@ -258,7 +259,7 @@ class MainWindow(QMainWindow):
     def gameOver(self):
         name, done = QInputDialog.getText(self, "name box", "Enter your name:")
         if done:
-            self.tooltip.setText("Name: "+ str(name) )
+            return name
         
 
 if __name__ == "__main__":
