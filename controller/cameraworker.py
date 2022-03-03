@@ -19,7 +19,7 @@ class CameraWorker(QThread):
 
     def run(self):
         self.active = True
-        self.overhead = Overhead(1000, 2500)
+        self.overhead = Overhead()
         self.overhead.setup()
         target = self.newTarget(-1)
         while self.active:
@@ -29,7 +29,7 @@ class CameraWorker(QThread):
             if gotTarget:
                 target = self.newTarget(target)
                 self.dotCollected.emit()
-            formattedFrame = self.formatFrame(self.overhead.drawFrame(boundary=True))
+            formattedFrame = self.formatFrame(self.overhead.drawFrame(car=True, boundary=True))
             self.newFrame.emit(formattedFrame)
 
     def stop(self):

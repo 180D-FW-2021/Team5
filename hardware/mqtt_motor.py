@@ -86,16 +86,23 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-client.connect_async('mqtt.eclipseprojects.io')
-
+#client.connect_async('mqtt.eclipseprojects.io')
+client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
-	while(not(game_over)):
-		#if powerup is on, and it's been 3 seconds
-		if(powerup_on == True and time.time() - time_powerup >= 3):
-			powerup_on = False
-			car.change_Speed(old_speed)
+	while(True):
+		while(not(game_over)):
+			#if powerup is on, and it's been 3 seconds
+			if(powerup_on == True and time.time() - time_powerup >= 3):
+				powerup_on = False
+				car.change_Speed(old_speed)
+				print('Powerup over')
+		car.reset()
+		game_over = False
+		powerup_on = False
+		time_powerup = 0
+		old_speed = 20
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()

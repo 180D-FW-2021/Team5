@@ -24,14 +24,31 @@ class Car:
 		self.pwmL = io.PWM(self.enL, 100)
 		self.pwmR = io.PWM(self.enR, 100)
 
-		self.is_stopped = False
-		self.game_over = False
+		self.is_stopped = True
 		self.speed = 20
+		self.turn_Speed = 40
 
-		self.left_turn_length = 0.4
+		self.left_turn_length = 0.5
 		self.right_turn_length = 0.5
 
-		self.start_Driving()
+		#initialize the PWM for enL and enR, but this causes the car to start driving
+		self.pwmL.start(self.speed)
+		self.pwmR.start(self.speed)
+		#so immediately stop driving
+		self.stop_Driving()
+
+	def reset(self):
+		self.is_stopped = True
+		self.speed = 20
+
+		self.left_turn_length = 0.5
+		self.right_turn_length = 0.5
+
+		#initialize the PWM for enL and enR, but this causes the car to start driving
+		self.pwmL.start(self.speed)
+		self.pwmR.start(self.speed)
+		#so immediately stop driving
+		self.stop_Driving()
 
 	def stop_Driving(self):
 		#drive all inputs high to stop driving
@@ -39,12 +56,12 @@ class Car:
 		io.output(self.in2, True)
 		io.output(self.in3, True)
 		io.output(self.in4, True)
-		self.pwmL.stop()
-		self.pwmR.stop()
+		#self.pwmL.stop()
+		#self.pwmR.stop()
 
 	def start_Driving(self):
-		self.pwmL.start(self.speed)
-		self.pwmR.start(self.speed)
+		#self.pwmL.start(self.speed)
+		#self.pwmR.start(self.speed)
 		io.output(self.in1, True)
 		io.output(self.in2, False)
 		io.output(self.in3, True)
@@ -55,12 +72,17 @@ class Car:
 		self.pwmR.ChangeDutyCycle(self.speed)
 		self.pwmL.ChangeDutyCycle(self.speed)
 
+		#self.left_turn_length = -0.005*inputSpeed+0.8
+		#self.right_turn_length = -0.005*inputSpeed+0.8
+
 	def turn_Left(self):
 		if(self.is_stopped == True):
 			pass
 		else:
 			#current time
 			start_time = time.time()
+			old_speed = self.speed
+			self.change_Speed(self.turn_Speed)
 			#run for 1 seconds
 			while(time.time() - start_time < self.left_turn_length):
 				#drive left motor backward
@@ -70,6 +92,7 @@ class Car:
 				io.output(self.in3, True)
 				io.output(self.in4, False)
 			#once while loop is over, return to driving straight
+			self.change_Speed(old_speed)
 			io.output(self.in1, True)
 			io.output(self.in2, False)
 			io.output(self.in3, True)
@@ -81,6 +104,8 @@ class Car:
 		else:
 			#current time
 			start_time = time.time()
+			old_speed = self.speed
+			self.change_Speed(self.turn_Speed)
 			#run for 1 second
 			while(time.time() - start_time < self.right_turn_length):
 				#drive left forward
@@ -90,6 +115,7 @@ class Car:
 				io.output(self.in3, False)
 				io.output(self.in4, True)
 			#once while loop is over, return to driving straight
+			self.change_Speed(old_speed)
 			io.output(self.in1, True)
 			io.output(self.in2, False)
 			io.output(self.in3, True)

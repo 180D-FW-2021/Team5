@@ -11,17 +11,20 @@ The game has 3 computers which all require different software running on them: t
 
 * Laptop (1)
 * External webcam or smartphone (1)
+  * If using a phone, you will need a camera mount to hold the phone over the game arena
 * RaspberryPi Zero WH (2)
 * BerryIMUv3 (1)
 * 9V Battery
 * 5V battery powerbank
 * Hardware car
+* White poster board
+* Black paper
 * Miscellaneous wires and connectors (Recommended to have ~8 Female-Male)
 
-Note that the hardware car is not described in detail here. Currently we have no schematic of the car to share, but the car is based on an [L293 H-bridge](https://www.adafruit.com/product/807) and 2 9V DC motors, and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi. 
+Note that the hardware car is not described in detail here. Currently we have no schematic of the car to share, but the car is based on an [L293 H-bridge](https://www.adafruit.com/product/807) and 2 9V DC motors, and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi. Refer to the following info on how the H–Bridge works: [Direction Truth Table](https://drive.google.com/file/d/1n0UCoyRyvaSpgobGnBY8AHq8t6nLdRKh/view?usp=sharing), [H-Bridge Pinout](https://drive.google.com/file/d/1lcsleWE-I3sc4Y-wqP7EvscM3ZZQUWd-/view?usp=sharing).
 
 ### Arena
-The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by color. By default, the boundary is blue, the dots are yellow, and the car is red. These can be changed in [`camera/overhead.py`](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py). For the arena to be valid, there must be an enclosed blue outline, at least two yellow dots, and a red region.
+The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by their shape and color. The boundary will always be the outline of the white poster board, the dots are represented by solid black rectangles/squares, and the car is marked with a black circle. For the arena to be valid, there must be a white poster board with at least two dots and the car fully within its bounds.
 
 The arena is overseen by the external camera. This can be a standard webcam or a smartphone running [DroidCam](https://www.dev47apps.com/). Importantly, the code assumes this camera is a secondary webcam for the controller laptop. If this camera is the primary webcam, change [this line](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py#L41) in `camera/overhead.py` to
 
@@ -94,7 +97,8 @@ Since the `controller` environment contains many large packages that the car wil
 
     
 ### Controller Laptop
-* This laptop needs a microphone in order to process speech inputs.
+(*This laptop needs a microphone in order to process speech inputs.*)
+
 Clone the repository.
 
     git clone https://github.com/180D-FW-2021/Team5.git
@@ -111,9 +115,6 @@ Activate the environment and run `controller.py`.
 
 After a moment, the GUI will appear with an "Arena Ready" button. Click the button only once the arena is properly set up to start the game.
 
-The GUI will display a green circle over each dot it recognizes. If the game is not recognizing a dot in the arena, there are two possible solutions:
-
-1. If it looks like the camera is seeing the correct color for the dot (i.e. the dot does not appear washed-out or a different color in the GUI), then it may be that the dot is either too small or too large to pass the computer vision's noise filter. To fix this, adjust the values passed into `Overhead()` in [`controller/cameraworker.py`](https://github.com/180D-FW-2021/Team5/blob/main/controller/cameraworker.py#L22). These are the minimum and maximum areas to be considered as dots. If your dots seem particularly small on the GUI, try lowering the minimum, and vice versa.
-2. If the color in the GUI seems inaccurate or on the edge of the assigned color (e.g. a particularly greenish yellow), then it is likely that the computer vision code is not searching in the correct color range. Adjust the color range lows and highs in [`camera/overhead.py`](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py#L14) until the camera is able to recognize all dots. These values are in the [HSV](https://en.wikipedia.org/wiki/HSL_and_HSV) color space. Note that the code uses hue values that range from 0 to 180, contrasting with the standard 0 to 360 range one might find on a color picker.
+The GUI will display information about the game parts it has parsed. The boundary will be outlined in blue, the dots will have green circles around them, and the car will be outlined in red. The target dot, the next dot the player should aim to get, will have an extra purple circle around it.
 
 Running `python controller.py` may fail with an error about a license expiring. Because this project uses the free version of [Porcupine](https://picovoice.ai/platform/porcupine/), the speech recognition models eventually expire. If a user so desires, they could train a new model of the same keywords and place the model in `speech/porcupine_models`. The user would also have to change the file paths in [`controller/speechworker.py`](https://github.com/180D-FW-2021/Team5/blob/main/controller/speechworker.py#L15).
