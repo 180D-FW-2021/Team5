@@ -249,12 +249,16 @@ class MainWindow(QMainWindow):
         self.currentScore.show()
         self.currentLives.show()
         self.currentPower.show()
+        self.pauseButton.show()
+        self.powerupButton.show()
 
     def hideLabels(self):
         self.currentState.hide()
         self.currentScore.hide()
         self.currentLives.hide()
         self.currentPower.hide()
+        self.pauseButton.hide()
+        self.powerupButton.hide()
 
     def gameOver(self):
         name, done = QInputDialog.getText(self, "name box", "Enter your name:")

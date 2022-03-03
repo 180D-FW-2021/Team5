@@ -10,9 +10,10 @@ class SpeechWorker(QThread):
     keywordDetected = pyqtSignal(str)
 
     def __init__(self, index):
-        super.__init__()
+        super().__init__()
         # Store microphone device index on construction
         self.index = index
+        self.active = False
 
     def run(self):
         self.active = True
