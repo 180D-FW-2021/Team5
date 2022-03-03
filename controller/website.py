@@ -2,7 +2,7 @@ import requests
 import time
 import datetime
 
-def publish(username, score, powerups, turns, tstart):
+def publish(username, score, powerups, tstart):
     #grab time in game
     tnow = time.time()
 
@@ -17,7 +17,7 @@ def publish(username, score, powerups, turns, tstart):
         "username": username,
         "score": score,
         "powerups_used": powerups,
-        "num_turns": turns,
+        "num_turns": 0,
         "time_in_game": time_ig,
         "datetimestamp": timestamp,
     }

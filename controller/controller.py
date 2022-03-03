@@ -5,10 +5,12 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import time
 
 from cameraworker import CameraWorker
 from speechworker import SpeechWorker
 from mqtt import Mqtt
+import website
 
 class GameState(Enum):
     RUNNING = 0
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow):
         self.mqtt.startGame()
         self.state = GameState.RUNNING
         self.updateGui()
+        self.time_start = time.time()
 
     @pyqtSlot()
     def emit_start(self):
@@ -116,11 +119,14 @@ class MainWindow(QMainWindow):
         if self.state != GameState.PAUSED:
             print("Car outside boundary")
             self.lives -= 1
-            if self.lives == 0:
+            if self.lives <= 0:
                 self.mqtt.endGame()
                 self.state = GameState.PAUSED
                 self.tooltip.setText("GAME OVER")
                 self.redFlash(self.tooltip)
+                #TODO: Add username input
+                powerups_used = 3 + (self.score // 5) - self.powerups
+                website.publish(username, self.score, powerups_used, self.time_start)
                 self.updateGui()
             else:
                 self.mqtt.pauseGame()
