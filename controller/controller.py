@@ -79,12 +79,13 @@ class MainWindow(QMainWindow):
         self.layout1.addLayout(self.layout2)
 
         self.start.clicked.connect(self.emit_start)
+        self.hideLabels()
         
         widget = QWidget()
         widget.setLayout(self.layout1)
         self.setCentralWidget(widget)
 
-    def closeEvent(self, event):
+    def closeEvent(self):
         '''Clean up all necessary components when the user closes the main
         window.'''
         self.camera.stop()
@@ -106,6 +107,7 @@ class MainWindow(QMainWindow):
         self.score = 0
         self.powerups = 3
         self.state = GameState.RUNNING
+        self.showLabels()
         self.updateGui()
 
     @pyqtSlot()
@@ -153,11 +155,9 @@ class MainWindow(QMainWindow):
                 print("Continuing game")
                 self.mqtt.startGame()
                 self.state = GameState.RUNNING
-                # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"GAME PAUSE\" to pause")
                 self.updateGui()
             else:
-                # TODO: indicate on GUI that game is already running
                 self.redFlash(self.tooltip)
                 self.updateGui()
         elif keyword == "game-pause":
@@ -165,11 +165,9 @@ class MainWindow(QMainWindow):
                 print("Pausing game")
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
-                # TODO: make appropriate changes to GUI
                 self.tooltip.setText("Say \"CONTINUE\" to continue")
                 self.updateGui()
             else:
-                # TODO: indicate on GUI that game is already paused
                 self.redFlash(self.tooltip)
                 self.updateGui()
                 
@@ -178,12 +176,10 @@ class MainWindow(QMainWindow):
                 print("Powerup")
                 self.powerups -= 1
                 self.mqtt.activatePower()
-                # TODO: implement powerup, show powerup usage on GUI
                 self.tooltip.setText("POWERUP USED!")
                 self.timer.singleShot(6000, lambda x=self.tooltip: x.setText("Say \"GAME PAUSE\" to pause"))
                 self.updateGui()
             else:
-                # TODO: indicate on GUI that user has no powerups
                 self.redFlash(self.currentPower)
                 self.updateGui()
         else:
@@ -199,6 +195,24 @@ class MainWindow(QMainWindow):
         self.currentScore.setText("Score: " + str(self.score))
         self.currentLives.setText("Lives: " + str(self.lives))
         self.currentPower.setText("Powerups: " + str(self.powerups))
+
+    def showLabels(self):
+        self.currentState.show()
+        self.currentScore.show()
+        self.currentLives.show()
+        self.currentPower.show()
+
+    def hideLabels(self):
+        self.currentState.hide()
+        self.currentScore.hide()
+        self.currentLives.hide()
+        self.currentPower.hide()
+
+    def gameOver(self):
+        name, done = QInputDialog.getText(self, "name box", "Enter your name:")
+        if done:
+            self.tooltip.setText("Name: "+ str(name) )
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

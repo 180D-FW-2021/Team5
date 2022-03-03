@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
         self.layout1.addLayout(self.layout2)
         
         self.start.clicked.connect(self.emit_start)
+        self.hideLabels()
 
         widget = QWidget()
         widget.setLayout(self.layout1)
@@ -89,6 +90,7 @@ class MainWindow(QMainWindow):
         print("starting now")
         self.camera.start()
         self.start.hide()
+        self.gameOver()
         self.showLabels()
         self.redFlash(self.currentState)
 
@@ -122,6 +124,12 @@ class MainWindow(QMainWindow):
         self.currentLives.hide()
         self.currentPower.hide()
         self.tooltip.hide()
+
+    def gameOver(self):
+        name, done = QInputDialog.getText(self, "name box", "Enter your name:")
+        if done:
+            self.tooltip.setText("Name: "+ str(name) )
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
