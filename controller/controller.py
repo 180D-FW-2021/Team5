@@ -14,8 +14,14 @@ class GameState(Enum):
     RUNNING = 0
     PAUSED = 1
 
-class Signal(QObject):
-    started = pyqtSignal()
+class startSignal(QObject):
+    signal = pyqtSignal()
+
+class pauseSignal(QObject):
+    signal = pyqtSignal()
+
+class powerupSignal(QObject):
+    signal = pyqtSignal()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -58,27 +64,43 @@ class MainWindow(QMainWindow):
 
         # right side
         self.layout2 = QVBoxLayout()
-
+        
         # Start button
-        self.start = QPushButton("Start Game")
-        self.start_signal = Signal()
-        self.start_signal.started.connect(self.startGame)
-        self.layout2.addWidget(self.start)
+        self.startButton = QPushButton("Start Game")
+        self.start_signal = startSignal()
+        self.start_signal.signal.connect(self.startGame)
+        self.layout2.addWidget(self.startButton)
 
+        #
         self.currentState = QLabel("GAME STATE NOW: " + str(self.state.name), self)
         self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
         self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
         self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
         self.tooltip = QLabel("Click \"Start Game\" to start.", self)
 
+        #voice command buttons
+        self.layout3 = QHBoxLayout()
+        self.pauseButton = QPushButton("Continue/Pause")
+        self.powerupButton = QPushButton("Activate Power")
+        self.pause_signal = pauseSignal()
+        self.pause_signal.signal.connect(self.pauseGame)
+        self.powerup_signal = powerupSignal()
+        self.powerup_signal.signal.connect(self.activatePowerup)
+
+        self.layout3.addWidget(self.pauseButton)
+        self.layout3.addWidget(self.powerupButton)
+
         self.layout2.addWidget(self.currentState)
         self.layout2.addWidget(self.currentScore)
         self.layout2.addWidget(self.currentLives)
         self.layout2.addWidget(self.currentPower)
         self.layout2.addWidget(self.tooltip)
+        self.layout2.addLayout(self.layout3)
         self.layout1.addLayout(self.layout2)
 
-        self.start.clicked.connect(self.emit_start)
+        self.startButton.clicked.connect(self.emit_start)
+        self.pauseButton.clicked.connect(self.emit_pause)
+        self.powerupButton.clicked.connect(self.emit_powerup)
         self.hideLabels()
         
         widget = QWidget()
@@ -111,8 +133,27 @@ class MainWindow(QMainWindow):
         self.updateGui()
 
     @pyqtSlot()
+    def pauseGame(self):
+        if self.state == GameState.RUNNING:
+            self.keywordDetected("game-pause")
+        else:
+            self.keywordDetected("continue")
+
+    @pyqtSlot()
+    def activatePowerup(self):
+        self.keywordDetected("activate-power")
+
+    @pyqtSlot()
     def emit_start(self):
-        self.start_signal.started.emit()
+        self.start_signal.signal.emit()
+
+    @pyqtSlot()
+    def emit_pause(self):
+        self.pause_signal.signal.emit()
+
+    @pyqtSlot()
+    def emit_powerup(self):
+        self.powerup_signal.signal.emit()
         
     @pyqtSlot(QImage)
     def newFrame(self, frame):
