@@ -23,6 +23,8 @@ def on_connect(client, userdata, flags, rc):
 
 	client.subscribe("ece180d/team5/#", qos=1)
 
+
+
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
 		print("Unexpected Disconnect")
@@ -90,8 +92,13 @@ client.on_message = on_message
 client.connect_async('test.mosquitto.org')
 client.loop_start()
 
+time_last_heartbeat = time.time()
+
 try:
 	while(True):
+		if(time.time() - time_last_heartbeat >= 3):
+			client.publish('ece180d/team5/carReady', 'R')
+			time_last_heartbeat = time.time()
 		while(not(game_over)):
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
