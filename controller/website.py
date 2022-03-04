@@ -8,7 +8,10 @@ def publish(username, score, powerups, tstart):
 
     #format into acceptable string
     timestamp = datetime.datetime.fromtimestamp(tnow).strftime('%Y-%m-%d %H:%M:%S')
-    time_ig = datetime.datetime.fromtimestamp(int(tnow-tstart)).strftime('&H:%M:%S')
+    hours = int(tnow-tstart) // 3600
+    mins = (int(tnow-tstart) % 3600) // 60
+    secs = (int(tnow-tstart) % 3600) % 60
+    time_ig = '%02d:%02d:%02d' %(hours, mins, secs)
 
     url = 'https://beepboopw2d.herokuapp.com/api/insert'
 
@@ -24,4 +27,3 @@ def publish(username, score, powerups, tstart):
 
     x = requests.post(url, json=testdata)
     print(x.text)
-
