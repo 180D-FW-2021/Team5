@@ -1,9 +1,11 @@
+from tabnanny import verbose
 import paho.mqtt.client as mqtt
 
 class Mqtt(object):
     '''Base class wrapping a generic MQTT client'''
-    def __init__(self):
+    def __init__(self, verbose=False):
         '''Set up MQTT client and connect to broker.'''
+        self.verbose = verbose
         self.client = mqtt.Client()
         self.client.on_connect = self.onConnect
         self.client.on_disconnect = self.onDisconnect
@@ -21,14 +23,16 @@ class Mqtt(object):
         if rc != 0:
             print("Failed to connect to MQTT broker")
         else:
-            print("Connected")
+            if self.verbose:
+                print("Connected")
 
     def onDisconnect(self, client, userdata, rc):
         '''Default disconnect logic'''
         if rc != 0:
             print("Unexpected disconnect")
         else:
-            print("Disconnected")
+            if self.verbose:
+                print("Disconnected")
 
     def onMessage(self, client, userdata, message):
         '''Default message-handling logic'''
@@ -38,7 +42,7 @@ class ControllerMqtt(Mqtt):
     '''Class wrapping all game controller MQTT communication.'''
     def __init__(self):
         '''Set up MQTT client and connect to broker.'''
-        super.__init__()
+        super.__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
 
@@ -70,9 +74,10 @@ class HeartbeatMqtt(Mqtt):
 
     def onConnect(self, client, userdata, flags, rc):
         if rc != 0:
-            print("Failed to connect to MQTT broker")
+            raise RuntimeError("Failed to connect to MQTT broker")
         else:
-            print("Connected")
+            if self.verbose:
+                print("Connected")
             client.subscribe(self.imuTopic, qos=1)
             client.subscribe(self.carTopic, qos=1)
 

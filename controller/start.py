@@ -107,8 +107,9 @@ def main():
                 heart.sendHeartbeat()
                 last = time.time()
                 n = 1 if n == 3 else n + 1
-                print('Waiting for ' + devices + '.'*n + ' '*(3-n), end='\r')
+                print('Waiting for ' + devices + '.'*n + ' '*20, end='\r')
             
+        print('Starting game' + ' '*20)
         run(args.camera, args.microphone)
 
 if __name__ == '__main__':
