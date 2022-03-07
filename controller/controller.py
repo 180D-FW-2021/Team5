@@ -30,9 +30,9 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         # Game logic variables
-        self.lives = 3
-        self.score = 0
-        self.powerups = 3
+        self.nLives = 3
+        self.nScore = 0
+        self.nPower = 3
         self.state = GameState.PAUSED
 
         # Set up overhead camera thread, but wait for user input to start it
@@ -73,30 +73,30 @@ class MainWindow(QMainWindow):
         self.start_signal.signal.connect(self.startGame)
         self.layout2.addWidget(self.startButton)
 
-        #
-        self.currentState = QLabel("GAME STATE NOW: " + str(self.state.name), self)
-        self.currentScore = QLabel("YOUR SCORE ARE: " + str(self.score), self)
-        self.currentLives = QLabel("YOUR LIVES IS: " + str(self.lives), self)
-        self.currentPower = QLabel("YOUR POWERUPS IS: " + str(self.powerups), self)
-        self.tooltip = QLabel("Click \"Start Game\" to start.", self)
+        #game information labels
+        self.stateLabel = QLabel("GAME STATE NOW: " + str(self.state.name), self)
+        self.scoreLabel = QLabel("YOUR SCORE ARE: " + str(self.nScore), self)
+        self.livesLabel = QLabel("YOUR LIVES IS: " + str(self.nLives), self)
+        self.powerLabel = QLabel("YOUR POWERUPS IS: " + str(self.nPower), self)
+        self.tipLabel = QLabel("Click \"Start Game\" to start.", self)
 
         #voice command buttons
         self.layout3 = QHBoxLayout()
         self.pauseButton = QPushButton("Continue/Pause")
         self.powerupButton = QPushButton("Activate Power")
-        self.pause_signal = pauseSignal()
-        self.pause_signal.signal.connect(self.pauseGame)
-        self.powerup_signal = powerupSignal()
-        self.powerup_signal.signal.connect(self.activatePowerup)
+        self.pauseSignal = pauseSignal()
+        self.pauseSignal.signal.connect(self.pauseGame)
+        self.powerupSignal = powerupSignal()
+        self.powerupSignal.signal.connect(self.activatePowerup)
 
         self.layout3.addWidget(self.pauseButton)
         self.layout3.addWidget(self.powerupButton)
 
-        self.layout2.addWidget(self.currentState)
-        self.layout2.addWidget(self.currentScore)
-        self.layout2.addWidget(self.currentLives)
-        self.layout2.addWidget(self.currentPower)
-        self.layout2.addWidget(self.tooltip)
+        self.layout2.addWidget(self.stateLabel)
+        self.layout2.addWidget(self.scoreLabel)
+        self.layout2.addWidget(self.livesLabel)
+        self.layout2.addWidget(self.powerLabel)
+        self.layout2.addWidget(self.tipLabel)
         self.layout2.addLayout(self.layout3)
         self.layout1.addLayout(self.layout2)
 
@@ -127,9 +127,9 @@ class MainWindow(QMainWindow):
         if not self.speech.active:
             self.speech.start()
         self.mqtt.startGame()
-        self.lives = 3
-        self.score = 0
-        self.powerups = 3
+        self.nLives = 3
+        self.nScore = 0
+        self.nPower = 3
         self.state = GameState.RUNNING
         self.showLabels()
         self.updateGui()
@@ -152,11 +152,11 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def emit_pause(self):
-        self.pause_signal.signal.emit()
+        self.pauseSignal.signal.emit()
 
     @pyqtSlot()
     def emit_powerup(self):
-        self.powerup_signal.signal.emit()
+        self.powerupSignal.signal.emit()
         
     @pyqtSlot(QImage)
     def newFrame(self, frame):
@@ -166,33 +166,32 @@ class MainWindow(QMainWindow):
     def carOutside(self):
         if self.state != GameState.PAUSED:
             print("Car outside boundary")
-            self.lives -= 1
-            if self.lives <= 0:
+            self.nLives -= 1
+            if self.nLives <= 0:
                 self.mqtt.endGame()
                 self.state = GameState.PAUSED
-                self.tooltip.setText("GAME OVER")
-                self.redFlash(self.tooltip)
+                self.tipLabel.setText("GAME OVER")
+                self.redFlash(self.tipLabel)
                 #TODO: Add username input
-                powerups_used = 3 + (self.score // 5) - self.powerups
+                powerups_used = 3 + (self.nScore // 5) - self.nPower
                 username = self.gameOver()
-                website.publish(username, self.score, powerups_used, self.time_start)
+                website.publish(username, self.nScore, powerups_used, self.time_start)
                 self.updateGui()
             else:
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
-                self.tooltip.setText("Reset car and say \"CONTINUE\"")
+                self.tipLabel.setText("Reset car and say \"CONTINUE\"")
                 self.updateGui()
 
     @pyqtSlot()
     def dotCollected(self):
         if self.state != GameState.PAUSED:
             print("Car collected dot")
-            self.score += 1
-            if self.score % 5 == 0:
-                self.powerups += 1
-                self.tooltip.setText("New powerup obtained!")
-                self.redFlash(self.powerups)
-            # TODO: Update score on GUI // no change needed
+            self.nScore += 1
+            if self.nScore % 5 == 0:
+                self.nPower += 1
+                self.tipLabel.setText("New powerup obtained!")
+                self.redFlash(self.powerLabel)
             self.mqtt.speedUp()
             self.updateGui()
 
@@ -203,32 +202,32 @@ class MainWindow(QMainWindow):
                 print("Continuing game")
                 self.mqtt.startGame()
                 self.state = GameState.RUNNING
-                self.tooltip.setText("Say \"GAME PAUSE\" to pause")
+                self.tipLabel.setText("Say \"GAME PAUSE\" to pause")
                 self.updateGui()
             else:
-                self.redFlash(self.tooltip)
+                self.redFlash(self.tipLabel)
                 self.updateGui()
         elif keyword == "game-pause":
             if self.state == GameState.RUNNING:
                 print("Pausing game")
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
-                self.tooltip.setText("Say \"CONTINUE\" to continue")
+                self.tipLabel.setText("Say \"CONTINUE\" to continue")
                 self.updateGui()
             else:
-                self.redFlash(self.tooltip)
+                self.redFlash(self.tipLabel)
                 self.updateGui()
                 
         elif keyword == "activate-power":
-            if self.powerups > 0:
+            if self.nPower > 0:
                 print("Powerup")
-                self.powerups -= 1
+                self.nPower -= 1
                 self.mqtt.activatePower()
-                self.tooltip.setText("POWERUP USED!")
-                self.timer.singleShot(6000, lambda x=self.tooltip: x.setText("Say \"GAME PAUSE\" to pause"))
+                self.tipLabel.setText("POWERUP USED!")
+                self.timer.singleShot(6000, lambda x=self.tipLabel: x.setText("Say \"GAME PAUSE\" to pause"))
                 self.updateGui()
             else:
-                self.redFlash(self.currentPower)
+                self.redFlash(self.powerLabel)
                 self.updateGui()
         else:
             print("Unknown keyword detected: %s" % keyword)
@@ -239,24 +238,24 @@ class MainWindow(QMainWindow):
         self.timer.singleShot(1000, lambda x=label: x.setStyleSheet("QLabel {background-color: red;}"))
 
     def updateGui(self):
-        self.currentState.setText("Game State: " + str(self.state.name))
-        self.currentScore.setText("Score: " + str(self.score))
-        self.currentLives.setText("Lives: " + str(self.lives))
-        self.currentPower.setText("Powerups: " + str(self.powerups))
+        self.stateLabel.setText("Game State: " + str(self.state.name))
+        self.scoreLabel.setText("Score: " + str(self.nScore))
+        self.livesLabel.setText("Lives: " + str(self.nLives))
+        self.powerLabel.setText("Powerups: " + str(self.nPower))
 
     def showLabels(self):
-        self.currentState.show()
-        self.currentScore.show()
-        self.currentLives.show()
-        self.currentPower.show()
+        self.stateLabel.show()
+        self.scoreLabel.show()
+        self.livesLabel.show()
+        self.powerLabel.show()
         self.pauseButton.show()
         self.powerupButton.show()
 
     def hideLabels(self):
-        self.currentState.hide()
-        self.currentScore.hide()
-        self.currentLives.hide()
-        self.currentPower.hide()
+        self.stateLabel.hide()
+        self.scoreLabel.hide()
+        self.livesLabel.hide()
+        self.powerLabel.hide()
         self.pauseButton.hide()
         self.powerupButton.hide()
 
