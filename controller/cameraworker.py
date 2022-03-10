@@ -18,7 +18,7 @@ class CameraWorker(QThread):
     dotCollected = pyqtSignal() # Signal for car picking up the target dot
 
     def __init__(self, index):
-        super.__init__()
+        super().__init__()
         # Store camera device index on construction
         self.index = index
 
