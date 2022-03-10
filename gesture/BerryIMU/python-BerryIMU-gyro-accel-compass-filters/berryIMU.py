@@ -199,15 +199,20 @@ import paho.mqtt.client as mqtt
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
-
+	client.subscribe("ece180d/team5/imuReady", qos=1)
+	
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
 		print('Unexpected Disconnect')
 	else:
 		print('Expected Disconnect')
 
+# handshake with game controller to start game		
 def on_message(client, userdata, message):
 	print('Received message: "' + str(message.payload) + '" on topic "' + message.topic + '" with QoS ' + str(message.qos))
+	payload = message.payload.decode("utf-8")
+	if payload == '?':
+		client.publish(readyString, readyChar, qos=1)
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -436,7 +441,7 @@ while True:
     ############################# MQTT PUBLISH ########################
 
     # hearbeat
-    client.publish(readyString, readyChar, qos=1)
+    #client.publish(readyString, readyChar, qos=1)
 
     if AccXangle < -40 and turnChar != 'L':
         turnChar = 'L'
