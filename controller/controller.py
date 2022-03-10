@@ -40,6 +40,11 @@ class MainWindow(QMainWindow):
         # Start MQTT connection
         self.mqtt = ControllerMqtt()
 
+        # Heartbeat timer
+        self.heartbeat = QTimer()
+        self.heartbeat.timeout.connect(self.mqtt.heartbeat)
+        self.heartbeat.start(1000)
+
         # clock clock clock
         self.timer = QTimer(self)
 
