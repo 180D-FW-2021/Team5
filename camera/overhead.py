@@ -111,7 +111,7 @@ class Overhead(object):
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
         # cv.imshow("black", blackThings)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and cv.contourArea(c) > 100]
+        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and 1500 > cv.contourArea(c) > 100]
         self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
         self.nDots = len(self.dots)
 
