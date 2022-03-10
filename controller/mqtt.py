@@ -42,7 +42,7 @@ class ControllerMqtt(Mqtt):
     '''Class wrapping all game controller MQTT communication.'''
     def __init__(self):
         '''Set up MQTT client and connect to broker.'''
-        super.__init__(True)
+        super().__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
         self.turnsTopic = "ece180d/team5/website/numTurns"
