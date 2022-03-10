@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         
         #random bullshit you need to do to init
 
-        self.setGeometry(100, 100, 1000, 600)
+        self.setGeometry(400, 100, 1000, 600)
         self.setWindowTitle('please work')
         
         #
@@ -130,9 +130,18 @@ class MainWindow(QMainWindow):
         if done:
             self.tooltip.setText("Name: "+ str(name) )
 
+    def location_on_the_screen(self):
+        ag = QDesktopWidget().availableGeometry()
+        sg = QDesktopWidget().screenGeometry()
+
+        widget = self.geometry()
+        x = (int(ag.width()) - int(widget.width()))/2
+        y = (2 * int(ag.height()) - int(sg.height()) - int(widget.height()))/2
+        self.move(int(x), int(y))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     root = MainWindow()
+    root.location_on_the_screen()
     root.show()
     sys.exit(app.exec())

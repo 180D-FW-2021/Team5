@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
         # GUI layout
         #init
         self.setWindowTitle('Beep boop want to drive')
+        self.setFixedSize(1200, 900)
         self.layout1 = QHBoxLayout()
 
         #video box / left side
@@ -272,12 +273,23 @@ class MainWindow(QMainWindow):
         name, done = QInputDialog.getText(self, "name box", "Enter your name:")
         if done:
             return name
+
+    def move_to_center(self):
+        ag = QDesktopWidget().availableGeometry()
+        sg = QDesktopWidget().screenGeometry()
+
+        widget = self.geometry()
+        x = (int(ag.width()) - int(widget.width()))/2
+        y = (2 * int(ag.height()) - int(sg.height()) - int(widget.height()))/2
+        self.move(int(x), int(y))
+
         
 
 def run(cam=0, mic=0):
     '''Starts the GUI and begins the game.'''
     app = QApplication(sys.argv)
     root = MainWindow(cam, mic)
+    root.move_to_center()
     root.show()
     sys.exit(app.exec())
 
