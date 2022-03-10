@@ -94,7 +94,7 @@ def main():
         handshake = HandshakeMqtt()
         last = 0
         n = 1
-        while not handshake.imu and not handshake.car:
+        while not handshake.imu or not handshake.car:
             if not handshake.imu and not handshake.car:
                 devices = 'IMU and car'
             elif not handshake.imu:
