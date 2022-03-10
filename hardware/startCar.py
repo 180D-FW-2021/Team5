@@ -38,23 +38,29 @@ def on_message(client, userdata, message):
 	print("Received message:")
 	payload = message.payload.decode("utf-8")
 	print(payload)
-	if(str(message.topic) == 'ece180d/team5/motorControls'):
-		if(car.is_stopped == True):
+	if str(message.topic) == 'ece180d/team5/motorControls':
+		if car.is_stopped == True:
 			print('Car is stopped')
-		elif(payload == 'L'):
+		elif payload == 'L':
 			car.turn_Left()
+<<<<<<< HEAD
 			numTurns += 1
 		elif(payload == 'R'):
 			car.turn_Right()
 			numTurns += 1
 		elif(payload == 'S'):
+=======
+		elif payload == 'R':
+			car.turn_Right()
+		elif payload == 'S':
+>>>>>>> dce5019a0c46b9aa0269b478a556189cb91a056e
 			pass
 		else:
 			print('Unknown direction control command')
-	elif(str(message.topic) == 'ece180d/team5/speed'):
-		if(payload == '+'):
+	elif str(message.topic) == 'ece180d/team5/speed':
+		if payload == '+':
 			car.change_Speed(min(car.speed + 10, 100))
-		elif(payload == '-'):
+		elif payload == '-':
 			car.change_Speed(max(car.speed - 10, 20))
 		else:
 			try:
@@ -65,26 +71,29 @@ def on_message(client, userdata, message):
 					print('invalid input speed. It must be between [20, 100]')
 			except:
 				print('Unknown speed command')
-	elif(str(message.topic) == 'ece180d/team5/game'):
+	elif str(message.topic) == 'ece180d/team5/game':
 		global game_over
 		global powerup_on
 		global time_powerup
 		global old_speed
-		if(payload == 'game over'):
+		if payload == 'game over':
 			game_over = True
-		elif(payload == 'stop car'):
+		elif payload == 'stop car':
 			car.is_stopped = True
 			car.stop_Driving()
-		elif(payload == 'start car'):
+		elif payload == 'start car':
 			car.is_stopped = False
 			car.start_Driving()
-		elif(payload == 'activate power'):
+		elif payload == 'activate power':
 			powerup_on = True
 			time_powerup = time.time()
 			#grab the old speed before it's changed
 			old_speed = car.speed
 			#change to speed to half of the old speed (or 20 minimum)
 			car.change_Speed(max(old_speed/2, 20))
+	elif str(message.topic) == 'ece180d/team5/carReady':
+		if payload == '?':
+			client.publish('ece180d/team5/carReady', 'R', qos=1)
 
 client = mqtt.Client()
 
