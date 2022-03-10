@@ -35,7 +35,7 @@ def on_message(client, userdata, message):
 	global car
 	global numTurns
 	payload = message.payload.decode("utf-8")
-	print("Received message:" + payload + "on topic: " + message.topic)
+	print("Received message:" + payload + " on topic: " + message.topic)
 	if str(message.topic) == 'ece180d/team5/motorControls':
 		if car.is_stopped == True:
 			print('Car is stopped')
