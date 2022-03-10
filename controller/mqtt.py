@@ -45,15 +45,12 @@ class ControllerMqtt(Mqtt):
         super.__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
-<<<<<<< HEAD
         self.turnsTopic = "ece180d/team5/website/numTurns"
         self.nTurns = -1
-=======
         self.heartbeatTopic = "ece180d/team5/heartbeat"
 
     def heartbeat(self):
         self.client.publish(self.heartbeatTopic, "R", qos=1)
->>>>>>> 1ce24c39e742324befe7206cf27ca90efe88de99
 
     def startGame(self):
         self.client.publish(self.gameTopic, "start car", qos=1)
