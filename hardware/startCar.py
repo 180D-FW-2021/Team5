@@ -25,8 +25,6 @@ def on_connect(client, userdata, flags, rc):
 
 	client.subscribe("ece180d/team5/#", qos=1)
 
-
-
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
 		print("Unexpected Disconnect")
@@ -43,17 +41,11 @@ def on_message(client, userdata, message):
 			print('Car is stopped')
 		elif payload == 'L':
 			car.turn_Left()
-<<<<<<< HEAD
 			numTurns += 1
 		elif(payload == 'R'):
 			car.turn_Right()
 			numTurns += 1
 		elif(payload == 'S'):
-=======
-		elif payload == 'R':
-			car.turn_Right()
-		elif payload == 'S':
->>>>>>> dce5019a0c46b9aa0269b478a556189cb91a056e
 			pass
 		else:
 			print('Unknown direction control command')
@@ -114,7 +106,7 @@ try:
 				car.change_Speed(old_speed)
 				print('Powerup over')
 		car.reset()
-		client.publish('ece180d/Team5/website/numTurns', numTurns, qos=1)
+		client.publish('ece180d/team5/website/numTurns', numTurns, qos=1)
 		numTurns = 0
 		game_over = False
 		powerup_on = False
