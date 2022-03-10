@@ -1,5 +1,6 @@
 from tabnanny import verbose
 import paho.mqtt.client as mqtt
+import website
 
 class Mqtt(object):
     '''Base class wrapping a generic MQTT client'''
@@ -42,9 +43,11 @@ class ControllerMqtt(Mqtt):
     '''Class wrapping all game controller MQTT communication.'''
     def __init__(self):
         '''Set up MQTT client and connect to broker.'''
-        super.__init__(True)
+        super().__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
+        self.turnsTopic = "ece180d/team5/website/numTurns"
+        self.nTurns = -1
         self.heartbeatTopic = "ece180d/team5/heartbeat"
 
     def heartbeat(self):
@@ -67,6 +70,20 @@ class ControllerMqtt(Mqtt):
 
     def speedDown(self):
         self.client.publish(self.speedTopic, "-", qos=1)
+
+    def onConnect(self, client, userdata, flags, rc):
+        '''Default connection logic'''
+        if rc != 0:
+            print("Failed to connect to MQTT broker")
+        else:
+            if self.verbose:
+                print("Connected")
+            client.subscribe(self.turnsTopic, qos=1)
+
+    def onMessage(self, client, userdata, message):
+        '''Default message-handling logic'''
+        self.nTurns = int(message.payload.decode("utf-8"))
+        
 
 class HandshakeMqtt(Mqtt):
     def __init__(self):

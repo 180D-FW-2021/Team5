@@ -14,11 +14,6 @@ class GameState(Enum):
     GAME_OVER_BITCH = 2
     #SUPER_FUCKING_FAST = 2
 
-class Label(QWidget):
-    def __init__(self, text=""):
-        super(Label, self).__init__()
-        self.label = QLabel(text)
-
 class Signal(QObject):
     started = pyqtSignal()
 
@@ -39,10 +34,9 @@ class MainWindow(QMainWindow):
         self.powerups = 0
         self.state = GameState.PAUSED
         
-
         #random bullshit you need to do to init
 
-        self.setGeometry(100, 100, 1000, 600)
+        self.setGeometry(400, 100, 1000, 600)
         self.setWindowTitle('please work')
         
         #
@@ -80,6 +74,7 @@ class MainWindow(QMainWindow):
         self.layout1.addLayout(self.layout2)
         
         self.start.clicked.connect(self.emit_start)
+        self.hideLabels()
 
         widget = QWidget()
         widget.setLayout(self.layout1)
@@ -95,6 +90,7 @@ class MainWindow(QMainWindow):
         print("starting now")
         self.camera.start()
         self.start.hide()
+        self.gameOver()
         self.showLabels()
         self.redFlash(self.currentState)
 
@@ -129,8 +125,23 @@ class MainWindow(QMainWindow):
         self.currentPower.hide()
         self.tooltip.hide()
 
+    def gameOver(self):
+        name, done = QInputDialog.getText(self, "name box", "Enter your name:")
+        if done:
+            self.tooltip.setText("Name: "+ str(name) )
+
+    def location_on_the_screen(self):
+        ag = QDesktopWidget().availableGeometry()
+        sg = QDesktopWidget().screenGeometry()
+
+        widget = self.geometry()
+        x = (int(ag.width()) - int(widget.width()))/2
+        y = (2 * int(ag.height()) - int(sg.height()) - int(widget.height()))/2
+        self.move(int(x), int(y))
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     root = MainWindow()
+    root.location_on_the_screen()
     root.show()
     sys.exit(app.exec())

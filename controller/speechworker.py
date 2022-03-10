@@ -13,6 +13,7 @@ class SpeechWorker(QThread):
         super().__init__()
         # Store microphone device index on construction
         self.index = index
+        self.active = False
 
     def run(self):
         self.active = True
