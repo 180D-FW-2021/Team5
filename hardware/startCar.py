@@ -33,9 +33,9 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, message):
 	global car
-	print("Received message:")
+	global numTurns
 	payload = message.payload.decode("utf-8")
-	print(payload)
+	print("Received message:" + payload + "on topic: " + message.topic)
 	if str(message.topic) == 'ece180d/team5/motorControls':
 		if car.is_stopped == True:
 			print('Car is stopped')
