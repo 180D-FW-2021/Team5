@@ -177,7 +177,10 @@ class MainWindow(QMainWindow):
                 #TODO: Add username input
                 powerups_used = 3 + (self.nScore // 5) - self.nPower
                 username = self.gameOver()
-                website.publish(username, self.nScore, powerups_used, self.time_start-time_end)
+                while self.mqtt.nTurns == -1:
+                    pass
+                website.publish(username, self.nScore, powerups_used, self.mqtt.nTurns, self.time_start-time_end)
+                self.mqtt.nTurns = -1
                 self.updateGui()
             else:
                 self.mqtt.pauseGame()

@@ -45,6 +45,8 @@ class ControllerMqtt(Mqtt):
         super.__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
+        self.turnsTopic = "ece180d/team5/website/numTurns"
+        self.nTurns = -1
 
     def startGame(self):
         self.client.publish(self.gameTopic, "start car", qos=1)
@@ -63,6 +65,19 @@ class ControllerMqtt(Mqtt):
 
     def speedDown(self):
         self.client.publish(self.speedTopic, "-", qos=1)
+
+    def onConnect(self, client, userdata, flags, rc):
+        '''Default connection logic'''
+        if rc != 0:
+            print("Failed to connect to MQTT broker")
+        else:
+            if self.verbose:
+                print("Connected")
+            client.subscribe(self.turnsTopic, qos=1)
+
+    def onMessage(self, client, userdata, message):
+        '''Default message-handling logic'''
+        self.nTurns = int(message.payload.decode("utf-8"))
 
 class HeartbeatMqtt(Mqtt):
     def __init__(self):
