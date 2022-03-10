@@ -26,4 +26,3 @@ def publish(username, score, powerups, nTurns, tstart):
     }
 
     x = requests.post(url, json=testdata)
-    print(x.text)
