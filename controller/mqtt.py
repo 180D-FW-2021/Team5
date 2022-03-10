@@ -45,8 +45,15 @@ class ControllerMqtt(Mqtt):
         super.__init__(True)
         self.speedTopic = "ece180d/team5/speed"
         self.gameTopic = "ece180d/team5/game"
+<<<<<<< HEAD
         self.turnsTopic = "ece180d/team5/website/numTurns"
         self.nTurns = -1
+=======
+        self.heartbeatTopic = "ece180d/team5/heartbeat"
+
+    def heartbeat(self):
+        self.client.publish(self.heartbeatTopic, "R", qos=1)
+>>>>>>> 1ce24c39e742324befe7206cf27ca90efe88de99
 
     def startGame(self):
         self.client.publish(self.gameTopic, "start car", qos=1)
@@ -79,7 +86,7 @@ class ControllerMqtt(Mqtt):
         '''Default message-handling logic'''
         self.nTurns = int(message.payload.decode("utf-8"))
 
-class HeartbeatMqtt(Mqtt):
+class HandshakeMqtt(Mqtt):
     def __init__(self):
         super().__init__()
         self.imuTopic = "ece180d/team5/imuReady"
@@ -103,6 +110,6 @@ class HeartbeatMqtt(Mqtt):
         elif str(message.topic) == self.carTopic and payload == "R":
             self.car = True
 
-    def sendHeartbeat(self):
+    def sendHandshake(self):
         for topic in (self.imuTopic, self.carTopic):
             self.client.publish(topic, "?", qos=1)
