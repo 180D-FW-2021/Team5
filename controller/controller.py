@@ -174,7 +174,6 @@ class MainWindow(QMainWindow):
             print("Car outside boundary")
             self.nLives -= 1
             if self.nLives <= 0:
-                time_end = time.time()
                 self.mqtt.endGame()
                 self.state = GameState.PAUSED
                 self.tipLabel.setText("GAME OVER")
@@ -184,7 +183,7 @@ class MainWindow(QMainWindow):
                 username = self.gameOver()
                 while self.mqtt.nTurns == -1:
                     pass
-                website.publish(username, self.nScore, powerups_used, self.mqtt.nTurns, self.time_start-time_end)
+                website.publish(username, self.nScore, powerups_used, self.mqtt.nTurns, self.time_start)
                 self.mqtt.nTurns = -1
                 self.updateGui()
             else:
