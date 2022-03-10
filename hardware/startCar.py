@@ -18,6 +18,8 @@ enL = 19
 
 car = Car(in1, in2, in3, in4, enR, enL)
 
+numTurns = 0
+
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
 
@@ -41,8 +43,10 @@ def on_message(client, userdata, message):
 			print('Car is stopped')
 		elif(payload == 'L'):
 			car.turn_Left()
+			numTurns += 1
 		elif(payload == 'R'):
 			car.turn_Right()
+			numTurns += 1
 		elif(payload == 'S'):
 			pass
 		else:
@@ -101,6 +105,8 @@ try:
 				car.change_Speed(old_speed)
 				print('Powerup over')
 		car.reset()
+		client.publish('ece180d/Team5/website/numTurns', numTurns, qos=1)
+		numTurns = 0
 		game_over = False
 		powerup_on = False
 		time_powerup = 0
