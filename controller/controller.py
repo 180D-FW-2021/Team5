@@ -9,7 +9,8 @@ import time
 
 from cameraworker import CameraWorker
 from speechworker import SpeechWorker
-from mqtt import Mqtt
+
+from mqtt import ControllerMqtt
 import website
 
 class GameState(Enum):
@@ -46,7 +47,7 @@ class MainWindow(QMainWindow):
         self.speech.keywordDetected.connect(self.keywordDetected)
         
         # Start MQTT connection
-        self.mqtt = Mqtt()
+        self.mqtt = ControllerMqtt()
 
         # clock clock clock
         self.timer = QTimer(self)
