@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
         widget.setLayout(self.layout1)
         self.setCentralWidget(widget)
 
-    def closeEvent(self):
+    def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
         window.'''
         self.camera.stop()
@@ -124,6 +124,7 @@ class MainWindow(QMainWindow):
         self.mqtt.endGame()
         self.mqtt.stop()
         print("Shutting down")
+        event.accept()
 
     @pyqtSlot()
     def startGame(self):
@@ -181,11 +182,13 @@ class MainWindow(QMainWindow):
                 self.redFlash(self.tipLabel)
                 #TODO: Add username input
                 powerups_used = 3 + (self.nScore // 5) - self.nPower
+                self.camera.freeze = True
                 username = self.gameOver()
                 while self.mqtt.nTurns == -1:
                     pass
                 website.publish(username, self.nScore, powerups_used, self.mqtt.nTurns, self.time_start)
                 self.mqtt.nTurns = -1
+                self.camera.freeze = False
                 self.updateGui()
             else:
                 self.mqtt.pauseGame()
