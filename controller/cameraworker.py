@@ -22,6 +22,7 @@ class CameraWorker(QThread):
         # Store camera device index on construction
         self.index = index
         self.active = False
+        self.freeze = False
 
     def run(self):
         self.active = True
@@ -36,7 +37,8 @@ class CameraWorker(QThread):
                 target = self.newTarget(target)
                 self.dotCollected.emit()
             formattedFrame = self.formatFrame(self.overhead.drawFrame(car=True, boundary=True))
-            self.newFrame.emit(formattedFrame)
+            if not self.freeze:
+                self.newFrame.emit(formattedFrame)
 
     def stop(self):
         self.active = False
