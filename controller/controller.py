@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
         widget.setLayout(self.layout1)
         self.setCentralWidget(widget)
 
-    def closeEvent(self):
+    def closeEvent(self, event):
         '''Clean up all necessary components when the user closes the main
         window.'''
         self.camera.stop()
@@ -123,6 +123,7 @@ class MainWindow(QMainWindow):
         self.mqtt.endGame()
         self.mqtt.stop()
         print("Shutting down")
+        event.accept()
 
     @pyqtSlot()
     def startGame(self):
