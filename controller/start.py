@@ -110,6 +110,7 @@ def main():
                 print('Waiting for ' + devices + '.'*n + ' '*20, end='\r')
             
         print('Starting game' + ' '*20)
+        handshake.stop()
         run(args.camera, args.microphone)
 
 if __name__ == '__main__':
