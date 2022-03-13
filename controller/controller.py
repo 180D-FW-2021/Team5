@@ -76,8 +76,8 @@ class MainWindow(QMainWindow):
         
         # Start button
         self.startButton = QPushButton("Start Game")
-        self.start_signal = startSignal()
-        self.start_signal.signal.connect(self.startGame)
+        self.startSignal = startSignal()
+        self.startSignal.signal.connect(self.startGame)
         self.layout2.addWidget(self.startButton)
 
         #game information labels
@@ -157,7 +157,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def emit_start(self):
-        self.start_signal.signal.emit()
+        self.startSignal.signal.emit()
 
     @pyqtSlot()
     def emit_pause(self):
