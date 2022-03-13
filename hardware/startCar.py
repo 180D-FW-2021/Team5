@@ -8,7 +8,8 @@ powerup_on = False
 time_powerup = 0
 old_speed = 20
 numTurns = 0
-lastHeartbeat = 0
+lastHeartbeat = time.time()
+heartbeatActive = False
 
 #set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
 in1 = 17
@@ -22,9 +23,11 @@ car = Car(in1, in2, in3, in4, enR, enL)
 
 
 def on_connect(client, userdata, flags, rc):
+	global heartbeatActive
 	print("Connection returned result: "+str(rc))
 
 	client.subscribe("ece180d/team5/#", qos=1)
+	heartbeatActive = True
 
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
@@ -102,7 +105,7 @@ client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
-	while(time.time() - lastHeartbeat < 2):
+	while((time.time() - lastHeartbeat < 2) and heartbeatActive):
 		while(not(game_over)):
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
