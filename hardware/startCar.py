@@ -105,7 +105,9 @@ client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
-	while((time.time() - lastHeartbeat < 2) and heartbeatActive):
+	while(not heartbeatActive):
+		pass
+	while((time.time() - lastHeartbeat < 2)):
 		while(not(game_over)):
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
