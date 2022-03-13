@@ -22,7 +22,13 @@ class CameraWorker(QThread):
         # Store camera device index on construction
         self.index = index
         self.active = False
+        # When true, don't send new frames to the GUI. This stops frames from
+        # building up and crashing the game if the GUI is trapped in a blocking
+        # activity
         self.freeze = False
+        # When true, ignores overhead output. This ensures that dots won't
+        # accidentally be collected when the game is paused
+        self.paused = False
 
     def run(self):
         self.active = True
@@ -31,11 +37,12 @@ class CameraWorker(QThread):
         target = self.newTarget(-1)
         while self.active:
             inBoundary, gotTarget = self.overhead.loop(target)
-            if not inBoundary:
-                self.carOutside.emit()
-            if gotTarget:
-                target = self.newTarget(target)
-                self.dotCollected.emit()
+            if not self.paused:
+                if not inBoundary:
+                    self.carOutside.emit()
+                if gotTarget:
+                    target = self.newTarget(target)
+                    self.dotCollected.emit()
             formattedFrame = self.formatFrame(self.overhead.drawFrame(car=True, boundary=True))
             if not self.freeze:
                 self.newFrame.emit(formattedFrame)

@@ -134,6 +134,7 @@ class MainWindow(QMainWindow):
             self.camera.start()
         if not self.speech.active:
             self.speech.start()
+        self.camera.paused = False
         self.mqtt.startGame()
         self.nLives = 3
         self.nScore = 0
@@ -176,6 +177,7 @@ class MainWindow(QMainWindow):
             print("Car outside boundary")
             self.nLives -= 1
             if self.nLives <= 0:
+                self.camera.paused = True
                 self.mqtt.endGame()
                 self.state = GameState.PAUSED
                 self.tipLabel.setText("GAME OVER")
@@ -191,6 +193,7 @@ class MainWindow(QMainWindow):
                 self.camera.freeze = False
                 self.updateGui()
             else:
+                self.camera.paused = True
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
                 self.tipLabel.setText("Reset car and say \"CONTINUE\"")
@@ -213,6 +216,7 @@ class MainWindow(QMainWindow):
         if keyword == "continue":
             if self.state == GameState.PAUSED:
                 print("Continuing game")
+                self.camera.paused = False
                 self.mqtt.startGame()
                 self.state = GameState.RUNNING
                 self.tipLabel.setText("Say \"GAME PAUSE\" to pause")
@@ -223,6 +227,7 @@ class MainWindow(QMainWindow):
         elif keyword == "game-pause":
             if self.state == GameState.RUNNING:
                 print("Pausing game")
+                self.camera.paused = True
                 self.mqtt.pauseGame()
                 self.state = GameState.PAUSED
                 self.tipLabel.setText("Say \"CONTINUE\" to continue")
