@@ -23,11 +23,9 @@ car = Car(in1, in2, in3, in4, enR, enL)
 
 
 def on_connect(client, userdata, flags, rc):
-	global heartbeatActive
 	print("Connection returned result: "+str(rc))
 
 	client.subscribe("ece180d/team5/#", qos=1)
-	heartbeatActive = True
 
 def on_disconnect(client, userdata, rc):
 	if rc != 0:
@@ -73,6 +71,7 @@ def on_message(client, userdata, message):
 		global time_powerup
 		global old_speed
 		global lastHeartbeat
+		global heartbeatActive
 		if payload == 'game over':
 			game_over = True
 		elif payload == 'stop car':
@@ -94,6 +93,7 @@ def on_message(client, userdata, message):
 	elif str(message.topic) == 'ece180d/team5/heartbeat':
 		if payload == 'R':
 			lastHeartbeat = time.time()
+			heartbeatActive = True
 
 client = mqtt.Client()
 
