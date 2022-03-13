@@ -7,6 +7,8 @@ game_over = False
 powerup_on = False
 time_powerup = 0
 old_speed = 20
+numTurns = 0
+lastHeartbeat = 0
 
 #set up motor pins and en pins. 12,13,18,19 are PWM. We use PWM to control the motor speed on enR and enL.
 in1 = 17
@@ -18,7 +20,6 @@ enL = 19
 
 car = Car(in1, in2, in3, in4, enR, enL)
 
-numTurns = 0
 
 def on_connect(client, userdata, flags, rc):
 	print("Connection returned result: "+str(rc))
@@ -68,6 +69,7 @@ def on_message(client, userdata, message):
 		global powerup_on
 		global time_powerup
 		global old_speed
+		global lastHeartbeat
 		if payload == 'game over':
 			game_over = True
 		elif payload == 'stop car':
@@ -86,6 +88,9 @@ def on_message(client, userdata, message):
 	elif str(message.topic) == 'ece180d/team5/carReady':
 		if payload == '?':
 			client.publish('ece180d/team5/carReady', 'R', qos=1)
+	elif str(message.topic) == 'ece180d/team5/heartbeat':
+		if payload == 'R':
+			lastHeartbeat = time.time()
 
 client = mqtt.Client()
 
@@ -93,12 +98,11 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-#client.connect_async('mqtt.eclipseprojects.io')
 client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
-	while(True):
+	while(time.time() - lastHeartbeat < 2):
 		while(not(game_over)):
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
@@ -112,6 +116,7 @@ try:
 		powerup_on = False
 		time_powerup = 0
 		old_speed = 20
+	print('No heartbeat from GUI. Check connection to MQTT and GUI.')
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()
