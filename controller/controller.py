@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         # GUI layout
         #init
         self.setWindowTitle('Beep boop want to drive')
-        self.setFixedSize(1200, 900)
+        self.setFixedSize(1000, 600)
         self.layout1 = QHBoxLayout()
 
         #video box / left side
