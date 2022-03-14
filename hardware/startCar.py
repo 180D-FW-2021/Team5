@@ -105,10 +105,15 @@ client.connect_async('test.mosquitto.org')
 client.loop_start()
 
 try:
-	while(not heartbeatActive):
-		pass
-	while((time.time() - lastHeartbeat < 2)):
+	while(True):
+		#wait for heartbeat stuff before starting game
+		while(not heartbeatActive):
+			pass
 		while(not(game_over)):
+			if(time.time() - lastHeartbeat > 2):
+				print('No heartbeat from GUI. Check connection to MQTT and GUI. Uploading score...')
+				heartbeatActive = False
+				break
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
 				powerup_on = False
@@ -121,7 +126,7 @@ try:
 		powerup_on = False
 		time_powerup = 0
 		old_speed = 20
-	print('No heartbeat from GUI. Check connection to MQTT and GUI.')
+	
 except KeyboardInterrupt:
 	io.cleanup()
 	client.loop_stop()
