@@ -1,0 +1,14 @@
+[Unit]
+Description=imu_startup
+After=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/Team5/gesture/BerryIMU/python-BerryIMU-gyro-accel-compass-filters/
+Environment="PYTHONPATH=$PYTHONPATH:/home/pi/Team5/gesture/BerryIMU/python-BerryIMU-gyro-accel-compass-filters"
+ExecStartPre=/bin/sleep 5
+ExecStart=/usr/bin/python /home/pi/Team5/gesture/BerryIMU/python-BerryIMU-gyro-accel-compass-filters/berryIMU.py &
+Restart=always
+
+[Install]
+WantedBy=network-online.target
