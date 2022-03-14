@@ -36,8 +36,14 @@ def on_disconnect(client, userdata, rc):
 def on_message(client, userdata, message):
 	global car
 	global numTurns
+	global game_over
+	global powerup_on
+	global time_powerup
+	global old_speed
+	global lastHeartbeat
+	global heartbeatActive
 	payload = message.payload.decode("utf-8")
-	print("Received message:" + payload + " on topic: " + message.topic)
+	#print("Received message:" + payload + " on topic: " + message.topic)
 	if str(message.topic) == 'ece180d/team5/motorControls':
 		if car.is_stopped == True:
 			print('Car is stopped')
@@ -53,9 +59,18 @@ def on_message(client, userdata, message):
 			print('Unknown direction control command')
 	elif str(message.topic) == 'ece180d/team5/speed':
 		if payload == '+':
-			car.change_Speed(min(car.speed + 10, 100))
+			#detect edge case if dot is collected during powerup
+			if(powerup_on):
+				old_speed = old_speed+10
+				car.change_Speed(max(old_speed/2, 20))
+			else:
+				car.change_Speed(min(car.speed + 10, 100))
 		elif payload == '-':
-			car.change_Speed(max(car.speed - 10, 20))
+			if(powerup_on):
+				old_speed = old_speed-10
+				car.change_Speed(max(old_speed/2, 20))
+			else:
+				car.change_Speed(max(car.speed - 10, 20))
 		else:
 			try:
 				temp = int(payload)
@@ -66,14 +81,9 @@ def on_message(client, userdata, message):
 			except:
 				print('Unknown speed command')
 	elif str(message.topic) == 'ece180d/team5/game':
-		global game_over
-		global powerup_on
-		global time_powerup
-		global old_speed
-		global lastHeartbeat
-		global heartbeatActive
 		if payload == 'game over':
 			game_over = True
+			print('Game over :(')
 		elif payload == 'stop car':
 			car.is_stopped = True
 			car.stop_Driving()
@@ -111,14 +121,14 @@ try:
 			pass
 		while(not(game_over)):
 			if(time.time() - lastHeartbeat > 2):
-				print('No heartbeat from GUI. Check connection to MQTT and GUI. Uploading score...')
+				print('No heartbeat from GUI. Check connection to MQTT and GUI. Resetting car...')
 				heartbeatActive = False
 				break
 			#if powerup is on, and it's been 3 seconds
 			if(powerup_on == True and time.time() - time_powerup >= 3):
 				powerup_on = False
 				car.change_Speed(old_speed)
-				print('Powerup over')
+				#print('Powerup over')
 		car.reset()
 		client.publish('ece180d/team5/website/numTurns', numTurns, qos=1)
 		numTurns = 0
