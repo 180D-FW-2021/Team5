@@ -1,12 +1,107 @@
-# beep boop want to drive
+# User Manual
 **ECE 180D Team 5**: Derrick Huynh, David Kao, Robert Peralta, Lucas Wolter
 
+## Contents
+1. [Overview](#overview)
+1. [How to Play](#how-to-play)
+1. [Setup with Provided Hardware](#setup-with-provided-hardware)
+1. [Detailed Setup](#detailed-setup)
+
 ## Overview
-Beep boop want to drive is a reincarnation of the classic game [Snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre)), aiming to bridge the gap between software and hardware in an engaging and entertaining game. In beep boop want to drive, the user wirelessly steers a hardware car, which they navigate around a game arena marked out in tape. There are several dots placed in the arena and the user is directed to random dots in turn. The user is provided 3 powerups, which they can use to cut the speed of the car in half for 3 seconds. Picking up a dot increases the speed of the car up to maximum speed after 8 dots. The goal of the game is to collect as many dots as possible without leaving the arena 3 times.
+Beep boop want to drive is a reincarnation of the classic game
+[Snake](https://en.wikipedia.org/wiki/Snake_(video_game_genre)), aiming to
+bridge the gap between software and hardware in an engaging and entertaining
+game. In beep boop want to drive, the user wirelessly steers a hardware car,
+which they navigate around a game arena marked out in tape. There are several
+dots placed in the arena and the user is directed to random dots in turn. The
+user is provided 3 powerups, which they can use to cut the speed of the car in
+half for 3 seconds, gaining a new powerup every 5 dots collected. Picking up a
+dot increases the speed of the car up to maximum speed after 8 dots. The goal of
+the game is to collect as many dots as possible without leaving the arena 3
+times.
 
-The game features a hardware, remote-controlled car, gesture recognition steering, speech recognition game controls, and an overhead camera that uses computer vision to track the game. A central laptop orchestrates the entire game, seamlessly blending the disjoint modules together.
+The game features a hardware, remote-controlled car, gesture recognition
+steering, speech recognition game controls, and an overhead camera that uses
+computer vision to track the game. A central laptop orchestrates the entire
+game, seamlessly blending the disjoint modules together.
 
-## Setup
+## How to Play
+
+* Hold the IMU controller with the USB cable pointing away from you. Tilt it
+  left and right to steer. The car will only turn by a set amount
+* Use voice commands to control the game:
+    * `game pause`: stop the car and pause the game
+    * `continue`: continue the game from a paused state
+    * `activate power`: use a powerup, slowing the car down for a limited time
+* Drive over the dot outlined in purple on the GUI to pick it up
+* Every dot will increase the car's speed, and every 5 will give a new powerup
+* If the car leaves the arena, you lose a life and game is paused. Move the car
+  back into the arena and say `continue` to continue the game
+
+## Setup with Provided Hardware
+
+### Game Arena
+
+Take a white poster board and give it a border of black tape, leaving about a
+1/2 inch gap between the tape and the edge of the poster board. Cut 4-5 squares
+from a piece of black construction paper and tape them to the poster. Affix the
+poster to the floor. Position the external camera directly over the poster such
+that the entire poster is comfortably in view.
+
+### Car
+
+Make sure the `wpa_supplicant.conf` file is up to date with the wifi network and
+password it will be using. Plug the power bank into the RPi and get its IP
+address with
+
+```
+ping -4 raspberrypi.local
+```
+
+Then remotely `ssh` into the RPi and run the following:
+
+```
+conda activate controller
+python Team5/hardware/mqtt_motor.py
+```
+
+### IMU
+
+Make sure the `wpa_supplicant.conf` file is up to date with the wifi network and
+password it will be using. Attach the IMU RPi to the computer and log into it
+with a serial connection. The necessary script will start automatically.
+
+### Game Controller
+
+Set up the controller environment with the following commands:
+
+```
+git clone https://github.com/180D-FW-2021/Team5.git
+cd Team5/controller
+conda env create -f environment.yml
+conda activate controller
+```
+Then, ensuring that the external webcam is attached to the computer and
+functional, find the computer's device handle indices with
+
+```
+python start.py --show-devices
+```
+
+To determine which of the listed camera indices is the correct one, test them
+with commands like
+
+```
+python start.py --test-camera --camera <INDEX>
+```
+
+After finding the correct camera and microphone indices, start the game with
+
+```
+python start.py --camera <INDEX> --microphone <INDEX>
+```
+
+## Detailed Setup
 The game has 3 computers which all require different software running on them: the RPi with the IMU, the RPi on the car, and the controlling laptop. In total, you will need the following:
 
 * Laptop (1)
@@ -24,11 +119,9 @@ The game has 3 computers which all require different software running on them: t
 Note that the hardware car is not described in detail here. Currently we have no schematic of the car to share, but the car is based on an [L293 H-bridge](https://www.adafruit.com/product/807) and 2 9V DC motors, and an industrious user could investigate the code in the `hardware` directory to determine pin assignments on the RPi. Refer to the following info on how the H–Bridge works: [Direction Truth Table](https://drive.google.com/file/d/1n0UCoyRyvaSpgobGnBY8AHq8t6nLdRKh/view?usp=sharing), [H-Bridge Pinout](https://drive.google.com/file/d/1lcsleWE-I3sc4Y-wqP7EvscM3ZZQUWd-/view?usp=sharing).
 
 ### Arena
-The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by their shape and color. The boundary will always be the outline of the white poster board, the dots are represented by solid black rectangles/squares, and the car is marked with a black circle. For the arena to be valid, there must be a white poster board with at least two dots and the car fully within its bounds.
+The arena has 3 main components: the boundary, the dots, and the car. These components are differentiated by their shape and color. The boundary is described by a black inset border on the poster, about a half inch from the edge, the dots are represented by solid black rectangles/squares, and the car is marked with a black circle. For the arena to be valid, there must be a white poster board with its black border, at least two dots, and the car fully within its bounds.
 
-The arena is overseen by the external camera. This can be a standard webcam or a smartphone running [DroidCam](https://www.dev47apps.com/). Importantly, the code assumes this camera is a secondary webcam for the controller laptop. If this camera is the primary webcam, change [this line](https://github.com/180D-FW-2021/Team5/blob/main/camera/overhead.py#L41) in `camera/overhead.py` to
-
-    self.camera = cv.VideoCapture(0)
+The arena is overseen by the external camera. This can be a standard webcam or a smartphone running [DroidCam](https://www.dev47apps.com/). Since this camera is likely not the default camera of the laptop, one will need to use the startup script described later to determine its device handle to ensure the game runs properly.
 
 ### Gesture RPi
 These setup instructions are adapted from lab 4.
@@ -96,25 +189,11 @@ Since the `controller` environment contains many large packages that the car wil
 3. If you suddenly lose connection to the car, it is possible that the car left the range of the remote ssh. In this case, you will need to reconnect to the car and rerun the program. In the case that the motors are still running, press `Ctrl+C` to abort the program (this will cause the car to stop the motors) and you may restart the game as normal.
 
     
-### Controller Laptop
+### Game Controller
 (*This laptop needs a microphone in order to process speech inputs.*)
 
-Clone the repository.
-
-    git clone https://github.com/180D-FW-2021/Team5.git
-
-In an Anaconda shell, change the directory to `Team5/controller` and create a new environment with the YAML file.
-
-    cd Team5/controller
-    conda env create -f environment.yml
-
-Activate the environment and run `controller.py`.
-
-    conda activate controller
-    python controller.py
-
-After a moment, the GUI will appear with an "Arena Ready" button. Click the button only once the arena is properly set up to start the game.
+Follow the instructions in [Setup with Provided Hardware](#setup-with-provided-hardware).
 
 The GUI will display information about the game parts it has parsed. The boundary will be outlined in blue, the dots will have green circles around them, and the car will be outlined in red. The target dot, the next dot the player should aim to get, will have an extra purple circle around it.
 
-Running `python controller.py` may fail with an error about a license expiring. Because this project uses the free version of [Porcupine](https://picovoice.ai/platform/porcupine/), the speech recognition models eventually expire. If a user so desires, they could train a new model of the same keywords and place the model in `speech/porcupine_models`. The user would also have to change the file paths in [`controller/speechworker.py`](https://github.com/180D-FW-2021/Team5/blob/main/controller/speechworker.py#L15).
+Running `start.py` may fail with an error about a license expiring. Because this project uses the free version of [Porcupine](https://picovoice.ai/platform/porcupine/), the speech recognition models eventually expire. If a user so desires, they could train a new model of the same keywords and place the model in `speech/porcupine_models`. The user would also have to change the file paths in [`controller/speechworker.py`](../controller/speechworker.py).
