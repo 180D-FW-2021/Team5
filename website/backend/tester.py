@@ -3,6 +3,7 @@ import time
 import datetime
 
 #grab time in game
+
 tstart = time.time()
 time.sleep(5)
 tnow = time.time()
@@ -24,4 +25,4 @@ testdata = {
 }
 
 x = requests.post(url, json=testdata)
-print(x.text)   
+print(x.text)
