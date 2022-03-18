@@ -50,7 +50,12 @@ python Team5/hardware/mqtt_motor.py
 
 Make sure the `wpa_supplicant.conf` file is up to date with the wifi network and
 password it will be using. Attach the IMU RPi to the computer and log into it
-with a serial connection. The necessary script will start automatically.
+with a serial connection. The necessary script will start automatically. Press
+Ctrl+C to stop the script after finishing the game. If you need to restart the
+script, run the following commands:
+
+    cd Team5/gesture/BerryIMU/python-BerryIMU-gyro-accel-compass-filters
+    python berryIMU.py
 
 ### Game Controller
 
