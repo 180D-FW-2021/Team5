@@ -14,6 +14,7 @@ class Overhead(object):
         self.black = [0,0,0]
 
         # Other variables
+        self.poster = None # Poster contour
         self.boundary = None # Boundary contour
         self.dots = None # List of dots in the arena
         self.nDots = -1 # Number of dots parsed in the arena
@@ -26,6 +27,12 @@ class Overhead(object):
 
     def setup(self):
         '''Parses the game arena, capturing game boundary and dots.'''
+        # Keep taking frames until we've found the border of the poster
+        while self.poster is None:
+            self.getFrame()
+            if (self.frame is not None) and (self.frame.any()) and (not allSame(self.pFrame)):
+                self.findPoster()
+
         # Keep taking frames until we've found a boundary and at least two dots
         while self.boundary is None:
             self.getFrame()
@@ -49,6 +56,7 @@ class Overhead(object):
         self.getFrame()
         self.findCar()
         if self.car is not None:
+            self.noCar = 0
             inBoundary = inContour(self.boundary, centroid(self.car))
             # Define "collecting a dot" as when the center of the dot is within the
             # contour of the car
@@ -59,7 +67,7 @@ class Overhead(object):
             # car, we debounce sending inBoundary = False so we need 10 frames
             # no car in the boundary to declare it outside the boundary
             self.noCar += 1
-            if self.noCar == 10:
+            if self.noCar == 20:
                 self.noCar = 0
                 inBoundary = False
             else:
@@ -85,19 +93,34 @@ class Overhead(object):
         data outside the boundary.'''
         gray = cv.cvtColor(self.frame, cv.COLOR_BGR2GRAY)
         blurred = cv.GaussianBlur(gray, (5,5), 0)
-        if self.boundary is not None:
+        if self.poster is not None or self.boundary is not None:
             # Inspired by https://stackoverflow.com/questions/37912928/fill-the-outside-of-contours-opencv
+            edge = self.poster if self.boundary is None else self.boundary
+            erode = np.zeros(blurred.shape).astype(blurred.dtype) * 255
+            erode = cv.fillPoly(erode, [edge], 1)
+            kernel = np.ones((3, 3), np.uint8)
+            erode = cv.erode(erode, kernel, iterations=3)
+            newEdges, _ = cv.findContours(erode, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            newEdge = newEdges[0]
             stencil = np.ones(blurred.shape).astype(blurred.dtype) * 255
-            stencil = cv.fillPoly(stencil, [self.boundary], 0)
+            stencil = cv.fillPoly(stencil, [newEdge], 0)
+            stencil = cv.drawContours(stencil, [newEdge], -1, self.white, 1)
             return cv.bitwise_or(blurred, stencil)
         else:
             return blurred
+
+    def findPoster(self):
+        '''Finds the outer boundary of the largest white thing, considering it
+        the outer boundary of the poster.'''
+        _, whiteThings = cv.threshold(self.pFrame.copy(), 80, 255, cv.THRESH_BINARY)
+        whiteContours, _ = cv.findContours(whiteThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        if whiteContours:
+            self.poster = max(whiteContours, key=cv.contourArea)
 
     def findBoundary(self):
         '''Finds the interior contour of the largest black thing and assumes
         it's the boundary.'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
-        # cv.imshow("black", blackThings)
         blackContours, hierarchy = cv.findContours(blackThings, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         if blackContours:
             outerBoundaryIdx = largestTopLevel(blackContours, hierarchy)
@@ -109,18 +132,18 @@ class Overhead(object):
         '''Finds all black rectangles in the game area. Stores their bounding
         circles in self.dots as ((x,y),radius).'''
         _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
-        # cv.imshow("black", blackThings)
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and 1500 > cv.contourArea(c) > 100]
-        self.dots = [cv.minEnclosingCircle(c) for c in filteredContours]
+        filteredContours = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c) == 4 and cv.contourArea(c) > 100]
+        self.dots = list(filter(lambda x: x[1] < 100, [cv.minEnclosingCircle(c) for c in filteredContours]))
         self.nDots = len(self.dots)
 
     def findCar(self):
         '''Find the first black non-rectangle, and assume it's the car. Return
         its contour.'''
-        _, blackThings = cv.threshold(self.pFrame.copy(), 70, 255, cv.THRESH_BINARY_INV)
+        _, blackThings = cv.threshold(self.pFrame.copy(), 90, 255, cv.THRESH_BINARY_INV)
+        
         blackContours, _ = cv.findContours(blackThings, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        maybeCars = [c for c in blackContours if inContour(self.boundary, centroid(c)) and nCorners(c, True) > 4 and cv.contourArea(c) > 200]
+        maybeCars = [c for c in blackContours if (inContour(self.boundary, centroid(c)) and nCorners(c, True) > 4 and 15000 > cv.contourArea(c) > 1000)]
         if maybeCars:
             # TODO: Handle multiple cars
             self.car = max(maybeCars, key=cv.contourArea)
@@ -151,6 +174,12 @@ class Overhead(object):
         return frame
 
 # Utility functions
+
+def allSame(a):
+    '''Returns true if all values in the numpy array are the same as the
+    first.'''
+    equals = (a == a[0])
+    return equals.all()
 
 def centroid(cnt):
     '''Computes and returns the centroid point of a given contour.'''

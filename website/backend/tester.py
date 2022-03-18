@@ -3,30 +3,26 @@ import time
 import datetime
 
 #grab time in game
-tstart = datetime.datetime.now()
-time.sleep(1)
-tnow = datetime.datetime.now()
 
-print(tnow)
+tstart = time.time()
+time.sleep(5)
+tnow = time.time()
 
 #format into acceptable string
-timestamp = tnow.strftime('%Y-%m-%d %H:%M:%S')
-print(timestamp)
-#time_ig = str(tnow-tstart).strftime('%H:%M:%S')
-time_ig = str(tnow-tstart).split('.')[0]
-print(time_ig)
+timestamp = datetime.datetime.fromtimestamp(tnow).strftime('%Y-%m-%d %H:%M:%S')
+time_ig = datetime.datetime.fromtimestamp(int(tnow-tstart)).strftime('00:%M:%S')
 
-# url = 'https://beepboopw2d.herokuapp.com/api/insert'
+url = 'https://beepboopw2d.herokuapp.com/api/insert'
 
-# #create json w data
-# testdata = {
-#     "username": "test57",
-#     "score": 23,
-#     "powerups_used": 7,
-#     "num_turns": 75,
-#     "time_in_game": time_ig,
-#     "datetimestamp": timestamp,
-# }
+#create json w data
+testdata = {
+    "username": "test57",
+    "score": 23,
+    "powerups_used": 7,
+    "num_turns": 75,
+    "time_in_game": time_ig,
+    "datetimestamp": timestamp,
+}
 
-# x = requests.post(url, json=testdata)
-# print(x.text)   
+x = requests.post(url, json=testdata)
+print(x.text)
