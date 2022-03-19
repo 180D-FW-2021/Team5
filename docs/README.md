@@ -133,7 +133,7 @@ The arena is overseen by the external camera. This can be a standard webcam or a
 ### Gesture RPi
 These setup instructions are adapted from lab 4.
 To setup the IMU controller, first connect the BerryIMU to the Raspberry Pi as shown:
-![alt text](https://github.com/180D-FW-2021/Team5/blob/fda2e14a4b80961ee594399cf037b4bf1a368d94/gesture/Images/hw-setup.PNG)
+![Connection between Raspberry Pi and BerryIMU](../gesture/Images/hw-setup.PNG)
 
 Next, enter the following commands into the Raspberry Pi command line to install the necessary components:
 
@@ -158,7 +158,7 @@ Add the following lines into `/boot/config.txt`:
     dtparam=i2c1=on
 
 Reboot the RPi, then enter in the command line `sudo i2cdetect -y 1`. The following should be displayed:
-![alt text](https://github.com/180D-FW-2021/Team5/blob/fda2e14a4b80961ee594399cf037b4bf1a368d94/gesture/Images/i2cdetect.PNG)
+![Correct output for i2cdetect](../gesture/Images/i2cdetect.PNG)
 
 Next, run `git clone https://github.com/180D-FW-2021/Team5.git` to clone the repository. Run the following commands to navigate to and run the IMU controller code. Always run IMU controller code before running Car RPi code. Press `Ctrl+C` to stop running IMU controller code.
 
