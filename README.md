@@ -39,12 +39,14 @@ address with
 ping -4 raspberrypi.local
 ```
 
-Then remotely `ssh` into the RPi and run the following:
+Then remotely `ssh` into the RPi and run the script:
 
 ```
+ssh pi@<IP Address>
 conda activate controller
-python Team5/hardware/mqtt_motor.py
+python Team5/hardware/startCar.py
 ```
+You can test if this is successful when running the main controller and having a successful handshake.
 
 ### IMU
 
